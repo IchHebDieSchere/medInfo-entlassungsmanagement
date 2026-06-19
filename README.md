@@ -1,3 +1,5 @@
+##ArtzBrief##
+
 1. Patientenstammdaten
 Name, Vorname
 Geburtsdatum
