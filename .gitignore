@@ -1,3 +1,7 @@
-node_modules
-database
-*.env
+node_modules/
+/database/
+
+/.env
+/.env.*
+!/.env.example
+!/.env.test.example
