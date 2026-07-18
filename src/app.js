@@ -1,4 +1,7 @@
 import express from 'express'
+import swaggerUi from 'swagger-ui-express'
+
+import { swaggerSpecification } from './config/swagger.config.js'
 import { router } from './routes/index.js'
 import { errorHandler } from './middleware/error-handler.middleware.js'
 import { notFoundHandler } from './middleware/not-found.middleware.js'
@@ -11,6 +14,18 @@ export const createApp = () => {
 
   app.use(requestIdHandler)
   app.use(express.json({ limit: '1mb' }))
+
+  app.use(
+    '/api-docs',
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpecification, {
+      explorer: true
+    })
+  )
+
+  app.get('/api-docs.json', (request, response) => {
+    response.json(swaggerSpecification)
+  })
 
   app.use(router)
 

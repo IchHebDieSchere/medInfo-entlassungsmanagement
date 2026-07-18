@@ -126,7 +126,12 @@ Die Integrationstests verwenden ausschließlich die separate Datenbank
 | `GET` | `/api/v1/patients/:patientId` | einzelnen Patienten lesen |
 | `PATCH` | `/api/v1/patients/:patientId` | Patient teilweise ändern |
 
-Beispiel zum Anlegen eines Patienten in PowerShell:
+Zum testen der Application kann Swagger verwendet werden **(! Dafür müssen MongoDB und API laufen !)**
+```
+http://localhost:3000/api-docs
+```
+
+Swagger ist zwar entspannter, jedoch kann ein Beispiel-Patient auch folgendermaßen in der Console erstellt werden:
 
 ```powershell
 $body = @{
