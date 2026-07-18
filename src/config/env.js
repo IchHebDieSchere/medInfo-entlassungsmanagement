@@ -46,8 +46,60 @@ const nodeEnv = parseNodeEnv(
   process.env.NODE_ENV || 'development'
 )
 
+const parseCorsOrigins = value => {
+  const origins = value
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(Boolean)
+
+  for (const origin of origins) {
+    let parsedOrigin
+
+    try {
+      parsedOrigin = new URL(origin)
+    } catch {
+      throw new Error(`Invalid CORS origin: ${origin}`)
+    }
+
+    if (
+      !['http:', 'https:'].includes(parsedOrigin.protocol) ||
+      parsedOrigin.origin !== origin
+    ) {
+      throw new Error(`Invalid CORS origin: ${origin}`)
+    }
+  }
+
+  return Object.freeze([
+    ...new Set(origins)
+  ])
+}
+
+const parsePositiveInteger = (value, name) => {
+  const parsedValue = Number(value)
+
+  if (
+    !Number.isInteger(parsedValue) ||
+    parsedValue < 1
+  ) {
+    throw new Error(
+      `${name} must be a positive integer`
+    )
+  }
+
+  return parsedValue
+}
+
 export const config = Object.freeze({
   nodeEnv,
   port: parsePort(process.env.PORT || '3000'),
-  mongodbUri: getMongoDbUri(nodeEnv)
+  mongodbUri: getMongoDbUri(nodeEnv),
+  corsOrigins: parseCorsOrigins(process.env.CORS_ORIGINS || ''),
+  rateLimitWindowMs: parsePositiveInteger(
+    process.env.RATE_LIMIT_WINDOW_MS || '60000',
+    'RATE_LIMIT_WINDOW_MS'
+  ),
+  rateLimitMaxRequests: parsePositiveInteger(
+    process.env.RATE_LIMIT_MAX_REQUESTS || '100',
+    'RATE_LIMIT_MAX_REQUESTS'
+  )
 })

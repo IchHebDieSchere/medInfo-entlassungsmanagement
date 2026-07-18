@@ -6,6 +6,7 @@ import {
   startTestServer,
   stopTestServer
 } from './helpers/test-server.js'
+import { createApiRateLimiter } from '../src/middleware/rate-limit.middleware.js'
 
 let server
 let baseUrl
@@ -78,4 +79,116 @@ test('valid incoming request ID is preserved', async () => {
     response.headers.get('x-request-id'),
     'test-request-123'
   )
+})
+
+test('Swagger specification exposes all current endpoints', async () => {
+  const response = await fetch(`${baseUrl}/api-docs.json`)
+  const specification = await response.json()
+
+  assert.equal(response.status, 200)
+  assert.equal(specification.openapi, '3.0.3')
+
+  assert.ok(specification.paths['/ping']?.get)
+  assert.ok(specification.paths['/health']?.get)
+  assert.ok(specification.paths['/ready']?.get)
+  assert.ok(specification.paths['/api/v1/patients']?.get)
+  assert.ok(specification.paths['/api/v1/patients']?.post)
+  assert.ok(
+    specification.paths['/api/v1/patients/{patientId}']?.get
+  )
+  assert.ok(
+    specification.paths['/api/v1/patients/{patientId}']?.patch
+  )
+})
+
+test('API responses contain security headers', async () => {
+  const response = await fetch(`${baseUrl}/health`)
+
+  assert.equal(
+    response.headers.get('x-content-type-options'),
+    'nosniff'
+  )
+
+  assert.equal(
+    response.headers.get('x-frame-options'),
+    'SAMEORIGIN'
+  )
+})
+
+test('same-origin browser request is allowed', async () => {
+  const response = await fetch(`${baseUrl}/ping`, {
+    headers: {
+      origin: baseUrl
+    }
+  })
+
+  assert.equal(response.status, 200)
+
+  assert.equal(
+    response.headers.get('access-control-allow-origin'),
+    baseUrl
+  )
+})
+
+test('unknown cross-origin request is rejected', async () => {
+  const response = await fetch(`${baseUrl}/ping`, {
+    headers: {
+      origin: 'https://not-allowed.example'
+    }
+  })
+
+  const body = await response.json()
+
+  assert.equal(response.status, 403)
+  assert.equal(
+    body.error.code,
+    'CORS_ORIGIN_DENIED'
+  )
+  assert.ok(body.error.requestId)
+})
+
+test('API rate limiter returns standardized error', async () => {
+  const limitedApp = createApp({
+    rateLimiter: createApiRateLimiter({
+      windowMs: 60_000,
+      limit: 1
+    })
+  })
+
+  const limitedServer =
+    await startTestServer(limitedApp)
+
+  const limitedBaseUrl =
+    getTestServerUrl(limitedServer)
+
+  try {
+    const firstResponse = await fetch(
+      `${limitedBaseUrl}/api/v1/not-found`
+    )
+
+    assert.equal(firstResponse.status, 404)
+
+    const secondResponse = await fetch(
+      `${limitedBaseUrl}/api/v1/not-found`
+    )
+
+    const body = await secondResponse.json()
+
+    assert.equal(secondResponse.status, 429)
+    assert.equal(
+      body.error.code,
+      'RATE_LIMIT_EXCEEDED'
+    )
+    assert.ok(body.error.requestId)
+
+    assert.ok(
+      secondResponse.headers.get('ratelimit')
+    )
+
+    assert.ok(
+      secondResponse.headers.get('retry-after')
+    )
+  } finally {
+    await stopTestServer(limitedServer)
+  }
 })

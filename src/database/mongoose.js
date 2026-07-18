@@ -1,12 +1,16 @@
 import mongoose from 'mongoose'
+
 import { config } from '../config/env.js'
+import { logger } from '../observability/logger.js'
 
 export const connectToDatabase = async () => {
   await mongoose.connect(config.mongodbUri, {
     serverSelectionTimeoutMS: 5000
   })
 
-  console.log('MongoDB connected')
+  logger.info('MongoDB connected', {
+    database: mongoose.connection.name
+  })
 }
 
 export const disconnectFromDatabase = async () => {
@@ -14,9 +18,13 @@ export const disconnectFromDatabase = async () => {
     return
   }
 
+  const databaseName = mongoose.connection.name
+
   await mongoose.disconnect()
 
-  console.log('MongoDB disconnected')
+  logger.info('MongoDB disconnected', {
+    database: databaseName
+  })
 }
 
 export const isDatabaseReady = () => {

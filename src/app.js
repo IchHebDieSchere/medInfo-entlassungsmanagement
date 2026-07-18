@@ -2,30 +2,40 @@ import express from 'express'
 import swaggerUi from 'swagger-ui-express'
 
 import { swaggerSpecification } from './config/swagger.config.js'
-import { router } from './routes/index.js'
 import { errorHandler } from './middleware/error-handler.middleware.js'
 import { notFoundHandler } from './middleware/not-found.middleware.js'
 import { requestIdHandler } from './middleware/request-id.middleware.js'
+import { requestLogger } from './middleware/request-logger.middleware.js'
+import { apiSecurityHeaders, corsHandler, swaggerSecurityHeaders } from './middleware/security.middleware.js'
+import { apiRateLimiter } from './middleware/rate-limit.middleware.js'
+import { router } from './routes/index.js'
 
-export const createApp = () => {
+export const createApp = ({ rateLimiter = apiRateLimiter } = {}) => {
   const app = express()
 
   app.disable('x-powered-by')
 
   app.use(requestIdHandler)
+  app.use(requestLogger)
+  app.use(corsHandler)
   app.use(express.json({ limit: '1mb' }))
 
   app.use(
     '/api-docs',
+    swaggerSecurityHeaders,
     swaggerUi.serve,
     swaggerUi.setup(swaggerSpecification, {
       explorer: true
     })
   )
 
-  app.get('/api-docs.json', (request, response) => {
-    response.json(swaggerSpecification)
+  app.use(apiSecurityHeaders)
+
+  app.get('/api-docs.json', (req, res) => {
+    res.json(swaggerSpecification)
   })
+
+  app.use('/api/v1', rateLimiter)
 
   app.use(router)
 

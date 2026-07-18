@@ -4,6 +4,10 @@ import {
   connectToDatabase,
   disconnectFromDatabase
 } from './database/mongoose.js'
+import {
+  logger,
+  serializeError
+} from './observability/logger.js'
 
 const app = createApp()
 
@@ -14,9 +18,10 @@ const start = async () => {
   await connectToDatabase()
 
   server = app.listen(config.port, () => {
-    console.log(
-      `API listening on http://localhost:${config.port} (${config.nodeEnv})`
-    )
+    logger.info('HTTP server listening', {
+      port: config.port,
+      nodeEnv: config.nodeEnv
+    })
   })
 }
 
@@ -44,16 +49,28 @@ const shutdown = async signal => {
   }
 
   shutdownStarted = true
-  console.log(`${signal} received, shutting down`)
+
+  logger.info('Application shutdown started', {
+    signal
+  })
 
   try {
     await stopHttpServer()
     await disconnectFromDatabase()
 
-    console.log('Application stopped')
+    logger.info('Application stopped', {
+      signal
+    })
+
     process.exitCode = 0
   } catch (error) {
-    console.error('Application shutdown failed:', error)
+    logger.error('Application shutdown failed', {
+      signal,
+      error: serializeError(error, {
+        includeStack: config.nodeEnv !== 'production'
+      })
+    })
+
     process.exitCode = 1
   }
 }
@@ -67,6 +84,11 @@ process.once('SIGTERM', () => {
 })
 
 start().catch(error => {
-  console.error('Application startup failed:', error)
+  logger.error('Application startup failed', {
+    error: serializeError(error, {
+      includeStack: config.nodeEnv !== 'production'
+    })
+  })
+
   process.exitCode = 1
 })

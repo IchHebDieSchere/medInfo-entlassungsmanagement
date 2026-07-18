@@ -1,4 +1,9 @@
 import { config } from '../config/env.js'
+import {
+  logger,
+  sanitizeRequestPath,
+  serializeError
+} from '../observability/logger.js'
 
 export const errorHandler = (error, req, res, next) => {
   if (res.headersSent) {
@@ -14,33 +19,38 @@ export const errorHandler = (error, req, res, next) => {
     ? error.statusCode
     : 500
 
-  const code =
-    error.code ||
-    (statusCode >= 500
+  const hasApplicationErrorCode =
+    typeof error.code === 'string' &&
+    error.code.length > 0
+
+  const code = hasApplicationErrorCode
+    ? error.code
+    : statusCode >= 500
       ? 'INTERNAL_SERVER_ERROR'
-      : 'REQUEST_ERROR')
+      : 'REQUEST_ERROR'
 
   const hideInternalMessage =
-    config.nodeEnv === 'production' && statusCode >= 500
+    config.nodeEnv === 'production' &&
+    statusCode >= 500
 
   const message = hideInternalMessage
     ? 'Internal server error'
     : error.message || 'An unexpected error occurred'
 
-  console.error({
-    method: req.method,
-    path: req.originalUrl,
-    statusCode,
-    code,
-    error: error.stack || error.message
-  })
+  res.locals.errorCode = code
 
-  return res.status(statusCode).json({
-    error: {
+  if (statusCode >= 500) {
+    logger.error('Request processing failed', {
+      requestId: req.id,
+      method: req.method,
+      path: sanitizeRequestPath(req.originalUrl.split('?')[0]),
+      statusCode,
       code,
-      message
-    }
-  })
+      error: serializeError(error, {
+        includeStack: config.nodeEnv !== 'production'
+      })
+    })
+  }
 
   return res.status(statusCode).json({
     error: {
