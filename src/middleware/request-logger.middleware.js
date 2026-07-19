@@ -1,14 +1,9 @@
-import {
-  logger,
-  sanitizeRequestPath
-} from '../observability/logger.js'
+import { logger, sanitizeRequestPath } from '../observability/logger.js'
 
 const getDurationMs = startedAt => {
-  const durationNanoseconds =
-    process.hrtime.bigint() - startedAt
+  const durationNanoseconds = process.hrtime.bigint() - startedAt
 
-  const durationMilliseconds =
-    Number(durationNanoseconds) / 1_000_000
+  const durationMilliseconds = Number(durationNanoseconds) / 1_000_000
 
   return Number(durationMilliseconds.toFixed(2))
 }
@@ -36,9 +31,7 @@ export const requestLogger = (req, res, next) => {
       statusCode: res.statusCode,
       durationMs: getDurationMs(startedAt),
       outcome,
-      ...(res.locals.errorCode
-        ? { errorCode: res.locals.errorCode }
-        : {})
+      ...(res.locals.errorCode ? { errorCode: res.locals.errorCode } : {})
     }
 
     if (outcome === 'aborted') {

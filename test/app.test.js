@@ -75,10 +75,7 @@ test('valid incoming request ID is preserved', async () => {
     }
   })
 
-  assert.equal(
-    response.headers.get('x-request-id'),
-    'test-request-123'
-  )
+  assert.equal(response.headers.get('x-request-id'), 'test-request-123')
 })
 
 test('Swagger specification exposes all current endpoints', async () => {
@@ -87,32 +84,30 @@ test('Swagger specification exposes all current endpoints', async () => {
 
   assert.equal(response.status, 200)
   assert.equal(specification.openapi, '3.0.3')
+  assert.equal(
+    specification.components.securitySchemes.BearerAuth.scheme,
+    'bearer'
+  )
 
   assert.ok(specification.paths['/ping']?.get)
   assert.ok(specification.paths['/health']?.get)
   assert.ok(specification.paths['/ready']?.get)
   assert.ok(specification.paths['/api/v1/patients']?.get)
   assert.ok(specification.paths['/api/v1/patients']?.post)
-  assert.ok(
-    specification.paths['/api/v1/patients/{patientId}']?.get
-  )
-  assert.ok(
-    specification.paths['/api/v1/patients/{patientId}']?.patch
+  assert.ok(specification.paths['/api/v1/patients/{patientId}']?.get)
+  assert.ok(specification.paths['/api/v1/patients/{patientId}']?.patch)
+  assert.equal(
+    specification.paths['/api/v1/patients'].post['x-required-scopes'][0],
+    'patient:write'
   )
 })
 
 test('API responses contain security headers', async () => {
   const response = await fetch(`${baseUrl}/health`)
 
-  assert.equal(
-    response.headers.get('x-content-type-options'),
-    'nosniff'
-  )
+  assert.equal(response.headers.get('x-content-type-options'), 'nosniff')
 
-  assert.equal(
-    response.headers.get('x-frame-options'),
-    'SAMEORIGIN'
-  )
+  assert.equal(response.headers.get('x-frame-options'), 'SAMEORIGIN')
 })
 
 test('same-origin browser request is allowed', async () => {
@@ -124,10 +119,7 @@ test('same-origin browser request is allowed', async () => {
 
   assert.equal(response.status, 200)
 
-  assert.equal(
-    response.headers.get('access-control-allow-origin'),
-    baseUrl
-  )
+  assert.equal(response.headers.get('access-control-allow-origin'), baseUrl)
 })
 
 test('unknown cross-origin request is rejected', async () => {
@@ -140,10 +132,7 @@ test('unknown cross-origin request is rejected', async () => {
   const body = await response.json()
 
   assert.equal(response.status, 403)
-  assert.equal(
-    body.error.code,
-    'CORS_ORIGIN_DENIED'
-  )
+  assert.equal(body.error.code, 'CORS_ORIGIN_DENIED')
   assert.ok(body.error.requestId)
 })
 
@@ -155,40 +144,74 @@ test('API rate limiter returns standardized error', async () => {
     })
   })
 
-  const limitedServer =
-    await startTestServer(limitedApp)
+  const limitedServer = await startTestServer(limitedApp)
 
-  const limitedBaseUrl =
-    getTestServerUrl(limitedServer)
+  const limitedBaseUrl = getTestServerUrl(limitedServer)
 
   try {
-    const firstResponse = await fetch(
-      `${limitedBaseUrl}/api/v1/not-found`
-    )
+    const firstResponse = await fetch(`${limitedBaseUrl}/api/v1/not-found`)
 
     assert.equal(firstResponse.status, 404)
 
-    const secondResponse = await fetch(
-      `${limitedBaseUrl}/api/v1/not-found`
-    )
+    const secondResponse = await fetch(`${limitedBaseUrl}/api/v1/not-found`)
 
     const body = await secondResponse.json()
 
     assert.equal(secondResponse.status, 429)
-    assert.equal(
-      body.error.code,
-      'RATE_LIMIT_EXCEEDED'
-    )
+    assert.equal(body.error.code, 'RATE_LIMIT_EXCEEDED')
     assert.ok(body.error.requestId)
 
-    assert.ok(
-      secondResponse.headers.get('ratelimit')
-    )
+    assert.ok(secondResponse.headers.get('ratelimit'))
 
-    assert.ok(
-      secondResponse.headers.get('retry-after')
-    )
+    assert.ok(secondResponse.headers.get('retry-after'))
   } finally {
     await stopTestServer(limitedServer)
   }
+})
+
+test('invalid JSON returns a standardized client error', async () => {
+  const response = await fetch(`${baseUrl}/api/v1/patients`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json'
+    },
+    body: '{"familyName":'
+  })
+
+  const body = await response.json()
+
+  assert.equal(response.status, 400)
+  assert.equal(body.error.code, 'INVALID_JSON')
+  assert.ok(body.error.requestId)
+})
+
+test('unknown patient fields are rejected before database access', async () => {
+  const response = await fetch(`${baseUrl}/api/v1/patients`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify({
+      familyName: 'Mustermann',
+      unsupportedField: true
+    })
+  })
+
+  const body = await response.json()
+
+  assert.equal(response.status, 400)
+  assert.equal(body.error.code, 'VALIDATION_ERROR')
+  assert.ok(body.error.requestId)
+  assert.ok(Array.isArray(body.error.details))
+  assert.equal(body.error.details[0].location, 'body')
+})
+
+test('invalid patient IDs are rejected before database access', async () => {
+  const response = await fetch(`${baseUrl}/api/v1/patients/not-a-uuid`)
+
+  const body = await response.json()
+
+  assert.equal(response.status, 400)
+  assert.equal(body.error.code, 'VALIDATION_ERROR')
+  assert.equal(body.error.details[0].path, 'patientId')
 })

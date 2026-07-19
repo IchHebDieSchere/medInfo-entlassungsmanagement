@@ -1,15 +1,11 @@
 import { randomUUID } from 'node:crypto'
 
-const requestIdPattern =
-  /^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/
+const requestIdPattern = /^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/
 
 const getRequestId = req => {
   const providedRequestId = req.get('x-request-id')
 
-  if (
-    providedRequestId &&
-    requestIdPattern.test(providedRequestId)
-  ) {
+  if (providedRequestId && requestIdPattern.test(providedRequestId)) {
     return providedRequestId
   }
 

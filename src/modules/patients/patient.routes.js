@@ -1,11 +1,19 @@
 import { Router } from 'express'
 
+import { requireScopes } from '../../middleware/authorization.middleware.js'
+import { validateRequest } from '../../middleware/validation.middleware.js'
 import {
   createPatientHandler,
   getPatientByIdHandler,
   listPatientsHandler,
   updatePatientByIdHandler
 } from './patient.controller.js'
+import {
+  createPatientRequestSchema,
+  patientIdParamsSchema,
+  patientListQuerySchema,
+  updatePatientRequestSchema
+} from './patient.validation.js'
 
 export const patientRouter = Router()
 
@@ -17,6 +25,10 @@ export const patientRouter = Router()
  *       - Patients
  *     summary: Patient anlegen
  *     description: Legt einen neuen Patienten an.
+ *     security:
+ *       - BearerAuth: []
+ *     x-required-scopes:
+ *       - patient:write
  *     parameters:
  *       - $ref: '#/components/parameters/RequestId'
  *     requestBody:
@@ -38,10 +50,21 @@ export const patientRouter = Router()
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  *       '429':
  *         $ref: '#/components/responses/RateLimitExceeded'
  */
-patientRouter.post('/', createPatientHandler)
+patientRouter.post(
+  '/',
+  requireScopes('patient:write'),
+  validateRequest({
+    body: createPatientRequestSchema
+  }),
+  createPatientHandler
+)
 
 /**
  * @openapi
@@ -51,6 +74,10 @@ patientRouter.post('/', createPatientHandler)
  *       - Patients
  *     summary: Patienten seitenweise auflisten
  *     description: Gibt eine paginierte Liste der Patienten zurück.
+ *     security:
+ *       - BearerAuth: []
+ *     x-required-scopes:
+ *       - patient:read
  *     parameters:
  *       - $ref: '#/components/parameters/RequestId'
  *       - in: query
@@ -83,10 +110,21 @@ patientRouter.post('/', createPatientHandler)
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  *       '429':
  *         $ref: '#/components/responses/RateLimitExceeded'
  */
-patientRouter.get('/', listPatientsHandler)
+patientRouter.get(
+  '/',
+  requireScopes('patient:read'),
+  validateRequest({
+    query: patientListQuerySchema
+  }),
+  listPatientsHandler
+)
 
 /**
  * @openapi
@@ -96,6 +134,10 @@ patientRouter.get('/', listPatientsHandler)
  *       - Patients
  *     summary: Einzelnen Patienten lesen
  *     description: Gibt einen Patienten anhand seiner patientId zurück.
+ *     security:
+ *       - BearerAuth: []
+ *     x-required-scopes:
+ *       - patient:read
  *     parameters:
  *       - $ref: '#/components/parameters/RequestId'
  *       - in: path
@@ -112,16 +154,33 @@ patientRouter.get('/', listPatientsHandler)
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/PatientResponse'
+ *       '400':
+ *         description: Ungültige patientId
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       '404':
  *         description: Patient wurde nicht gefunden
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  *       '429':
  *         $ref: '#/components/responses/RateLimitExceeded'
  */
-patientRouter.get('/:patientId', getPatientByIdHandler)
+patientRouter.get(
+  '/:patientId',
+  requireScopes('patient:read'),
+  validateRequest({
+    params: patientIdParamsSchema
+  }),
+  getPatientByIdHandler
+)
 
 /**
  * @openapi
@@ -132,6 +191,10 @@ patientRouter.get('/:patientId', getPatientByIdHandler)
  *     summary: Patient teilweise ändern
  *     description:
  *       Aktualisiert ausschließlich die im Request-Body angegebenen Felder.
+ *     security:
+ *       - BearerAuth: []
+ *     x-required-scopes:
+ *       - patient:write
  *     parameters:
  *       - $ref: '#/components/parameters/RequestId'
  *       - in: path
@@ -166,7 +229,19 @@ patientRouter.get('/:patientId', getPatientByIdHandler)
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
  *       '429':
  *         $ref: '#/components/responses/RateLimitExceeded'
  */
-patientRouter.patch('/:patientId', updatePatientByIdHandler)
+patientRouter.patch(
+  '/:patientId',
+  requireScopes('patient:write'),
+  validateRequest({
+    params: patientIdParamsSchema,
+    body: updatePatientRequestSchema
+  }),
+  updatePatientByIdHandler
+)

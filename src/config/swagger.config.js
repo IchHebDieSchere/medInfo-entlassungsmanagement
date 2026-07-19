@@ -32,6 +32,16 @@ const options = {
     ],
 
     components: {
+      securitySchemes: {
+        BearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          description:
+            'RS256-signiertes Access Token mit passendem Issuer und Audience'
+        }
+      },
+
       parameters: {
         RequestId: {
           name: 'x-request-id',
@@ -42,8 +52,7 @@ const options = {
           schema: {
             type: 'string',
             maxLength: 100,
-            pattern:
-              '^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$',
+            pattern: '^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$',
             example: 'swagger-test-123'
           }
         }
@@ -53,9 +62,7 @@ const options = {
         CreatePatientRequest: {
           type: 'object',
           additionalProperties: false,
-          required: [
-            'familyName'
-          ],
+          required: ['familyName'],
           properties: {
             familyName: {
               type: 'string',
@@ -68,9 +75,7 @@ const options = {
                 type: 'string',
                 minLength: 1
               },
-              example: [
-                'Erika'
-              ]
+              example: ['Erika']
             },
             birthDate: {
               type: 'string',
@@ -97,10 +102,7 @@ const options = {
                 type: 'string',
                 minLength: 1
               },
-              example: [
-                'Erika',
-                'Maria'
-              ]
+              example: ['Erika', 'Maria']
             },
             birthDate: {
               type: 'string',
@@ -126,8 +128,7 @@ const options = {
             patientId: {
               type: 'string',
               format: 'uuid',
-              example:
-                'a38e7f0a-69f0-4ab8-b668-e446730bc220'
+              example: 'a38e7f0a-69f0-4ab8-b668-e446730bc220'
             },
             familyName: {
               type: 'string',
@@ -138,9 +139,7 @@ const options = {
               items: {
                 type: 'string'
               },
-              example: [
-                'Erika'
-              ]
+              example: ['Erika']
             },
             birthDate: {
               type: 'string',
@@ -164,9 +163,7 @@ const options = {
         PatientResponse: {
           type: 'object',
           additionalProperties: false,
-          required: [
-            'data'
-          ],
+          required: ['data'],
           properties: {
             data: {
               $ref: '#/components/schemas/Patient'
@@ -221,10 +218,7 @@ const options = {
         PatientListResponse: {
           type: 'object',
           additionalProperties: false,
-          required: [
-            'data',
-            'meta'
-          ],
+          required: ['data', 'meta'],
           properties: {
             data: {
               type: 'array',
@@ -235,9 +229,7 @@ const options = {
             meta: {
               type: 'object',
               additionalProperties: false,
-              required: [
-                'pagination'
-              ],
+              required: ['pagination'],
               properties: {
                 pagination: {
                   $ref: '#/components/schemas/Pagination'
@@ -250,18 +242,12 @@ const options = {
         ErrorResponse: {
           type: 'object',
           additionalProperties: false,
-          required: [
-            'error'
-          ],
+          required: ['error'],
           properties: {
             error: {
               type: 'object',
               additionalProperties: false,
-              required: [
-                'code',
-                'message',
-                'requestId'
-              ],
+              required: ['code', 'message', 'requestId'],
               properties: {
                 code: {
                   type: 'string',
@@ -273,10 +259,42 @@ const options = {
                 },
                 requestId: {
                   type: 'string',
-                  example:
-                    '87fdb42a-5112-45de-8908-26fa047bf080'
+                  example: '87fdb42a-5112-45de-8908-26fa047bf080'
+                },
+                details: {
+                  type: 'array',
+                  description:
+                    'Optionale Details zu einzelnen Validierungsfehlern',
+                  items: {
+                    $ref: '#/components/schemas/ValidationIssue'
+                  }
                 }
               }
+            }
+          }
+        },
+
+        ValidationIssue: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['location', 'path', 'code', 'message'],
+          properties: {
+            location: {
+              type: 'string',
+              enum: ['body', 'params', 'query'],
+              example: 'body'
+            },
+            path: {
+              type: 'string',
+              example: 'familyName'
+            },
+            code: {
+              type: 'string',
+              example: 'too_small'
+            },
+            message: {
+              type: 'string',
+              example: 'Must not be empty'
             }
           }
         },
@@ -284,15 +302,11 @@ const options = {
         StatusResponse: {
           type: 'object',
           additionalProperties: false,
-          required: [
-            'status'
-          ],
+          required: ['status'],
           properties: {
             status: {
               type: 'string',
-              enum: [
-                'ok'
-              ],
+              enum: ['ok'],
               example: 'ok'
             }
           }
@@ -301,32 +315,21 @@ const options = {
         ReadinessResponse: {
           type: 'object',
           additionalProperties: false,
-          required: [
-            'status',
-            'checks'
-          ],
+          required: ['status', 'checks'],
           properties: {
             status: {
               type: 'string',
-              enum: [
-                'ready',
-                'not_ready'
-              ],
+              enum: ['ready', 'not_ready'],
               example: 'ready'
             },
             checks: {
               type: 'object',
               additionalProperties: false,
-              required: [
-                'database'
-              ],
+              required: ['database'],
               properties: {
                 database: {
                   type: 'string',
-                  enum: [
-                    'up',
-                    'down'
-                  ],
+                  enum: ['up', 'down'],
                   example: 'up'
                 }
               }
@@ -336,19 +339,37 @@ const options = {
       },
 
       responses: {
+        Unauthorized: {
+          description: 'Authentifizierung erforderlich oder Token ungültig',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
+        Forbidden: {
+          description: 'Erforderliche Berechtigung fehlt',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ErrorResponse'
+              }
+            }
+          }
+        },
         RateLimitExceeded: {
           description: 'Zu viele Requests',
           headers: {
             'Retry-After': {
-              description:
-                'Sekunden bis ein erneuter Request möglich ist',
+              description: 'Sekunden bis ein erneuter Request möglich ist',
               schema: {
                 type: 'integer'
               }
             },
             RateLimit: {
-              description:
-                'Aktueller Zustand des Request-Limits',
+              description: 'Aktueller Zustand des Request-Limits',
               schema: {
                 type: 'string'
               }
@@ -362,7 +383,7 @@ const options = {
             }
           }
         }
-      },
+      }
     }
   },
 

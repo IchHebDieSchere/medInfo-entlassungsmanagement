@@ -4,10 +4,8 @@ import {
   connectToDatabase,
   disconnectFromDatabase
 } from './database/mongoose.js'
-import {
-  logger,
-  serializeError
-} from './observability/logger.js'
+import { startHttpServer, stopHttpServer } from './http/server.js'
+import { logger, serializeError } from './observability/logger.js'
 
 const app = createApp()
 
@@ -17,30 +15,22 @@ let shutdownStarted = false
 const start = async () => {
   await connectToDatabase()
 
-  server = app.listen(config.port, () => {
+  try {
+    server = await startHttpServer(app, {
+      port: config.port,
+      requestTimeoutMs: config.http.requestTimeoutMs,
+      headersTimeoutMs: config.http.headersTimeoutMs,
+      keepAliveTimeoutMs: config.http.keepAliveTimeoutMs
+    })
+
     logger.info('HTTP server listening', {
       port: config.port,
       nodeEnv: config.nodeEnv
     })
-  })
-}
-
-const stopHttpServer = () => {
-  return new Promise((resolve, reject) => {
-    if (!server) {
-      resolve()
-      return
-    }
-
-    server.close(error => {
-      if (error) {
-        reject(error)
-        return
-      }
-
-      resolve()
-    })
-  })
+  } catch (error) {
+    await disconnectFromDatabase()
+    throw error
+  }
 }
 
 const shutdown = async signal => {
@@ -55,7 +45,7 @@ const shutdown = async signal => {
   })
 
   try {
-    await stopHttpServer()
+    await stopHttpServer(server, config.http.shutdownTimeoutMs)
     await disconnectFromDatabase()
 
     logger.info('Application stopped', {

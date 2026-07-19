@@ -6,16 +6,10 @@ export const sanitizeRequestPath = path => {
     return 'unknown'
   }
 
-  return path.replace(
-    uuidPathSegmentPattern,
-    '/:id'
-  )
+  return path.replace(uuidPathSegmentPattern, '/:id')
 }
 
-export const serializeError = (
-  error,
-  { includeStack = false } = {}
-) => {
+export const serializeError = (error, { includeStack = false } = {}) => {
   if (!(error instanceof Error)) {
     return {
       message: String(error)
@@ -25,19 +19,16 @@ export const serializeError = (
   return {
     name: error.name,
     message: error.message,
-    ...(includeStack && error.stack
-      ? { stack: error.stack }
-      : {})
+    ...(includeStack && error.stack ? { stack: error.stack } : {})
   }
 }
 
 const writeLog = (level, message, context = {}) => {
-  const {
-    timestamp: ignoredTimestamp,
-    level: ignoredLevel,
-    message: ignoredMessage,
-    ...safeContext
-  } = context
+  const safeContext = { ...context }
+
+  delete safeContext.timestamp
+  delete safeContext.level
+  delete safeContext.message
 
   const entry = {
     timestamp: new Date().toISOString(),

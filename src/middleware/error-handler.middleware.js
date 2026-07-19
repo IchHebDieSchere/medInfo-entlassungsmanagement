@@ -10,32 +10,39 @@ export const errorHandler = (error, req, res, next) => {
     return next(error)
   }
 
+  const isInvalidJson =
+    error instanceof SyntaxError && error.type === 'entity.parse.failed'
+
   const hasValidStatusCode =
     Number.isInteger(error.statusCode) &&
     error.statusCode >= 400 &&
     error.statusCode <= 599
 
-  const statusCode = hasValidStatusCode
-    ? error.statusCode
-    : 500
+  const statusCode = isInvalidJson
+    ? 400
+    : hasValidStatusCode
+      ? error.statusCode
+      : 500
 
   const hasApplicationErrorCode =
-    typeof error.code === 'string' &&
-    error.code.length > 0
+    typeof error.code === 'string' && error.code.length > 0
 
-  const code = hasApplicationErrorCode
-    ? error.code
-    : statusCode >= 500
-      ? 'INTERNAL_SERVER_ERROR'
-      : 'REQUEST_ERROR'
+  const code = isInvalidJson
+    ? 'INVALID_JSON'
+    : hasApplicationErrorCode
+      ? error.code
+      : statusCode >= 500
+        ? 'INTERNAL_SERVER_ERROR'
+        : 'REQUEST_ERROR'
 
   const hideInternalMessage =
-    config.nodeEnv === 'production' &&
-    statusCode >= 500
+    config.nodeEnv === 'production' && statusCode >= 500
 
-  const message = hideInternalMessage
-    ? 'Internal server error'
-    : error.message || 'An unexpected error occurred'
+  const message = isInvalidJson
+    ? 'Request body contains invalid JSON'
+    : hideInternalMessage
+      ? 'Internal server error'
+      : error.message || 'An unexpected error occurred'
 
   res.locals.errorCode = code
 
@@ -56,7 +63,10 @@ export const errorHandler = (error, req, res, next) => {
     error: {
       code,
       message,
-      requestId: req.id
+      requestId: req.id,
+      ...(Array.isArray(error.details) && error.details.length > 0
+        ? { details: error.details }
+        : {})
     }
   })
 }

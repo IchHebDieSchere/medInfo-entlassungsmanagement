@@ -28,16 +28,11 @@ const corsOptionsDelegate = (req, callback) => {
   const requestOrigin = getRequestOrigin(req)
 
   const originAllowed =
-    origin === requestOrigin ||
-    config.corsOrigins.includes(origin)
+    origin === requestOrigin || config.corsOrigins.includes(origin)
 
   if (!originAllowed) {
     callback(
-      new AppError(
-        403,
-        'CORS_ORIGIN_DENIED',
-        'Request origin is not allowed'
-      )
+      new AppError(403, 'CORS_ORIGIN_DENIED', 'Request origin is not allowed')
     )
 
     return
@@ -46,21 +41,9 @@ const corsOptionsDelegate = (req, callback) => {
   callback(null, {
     origin: true,
     credentials: false,
-    methods: [
-      'GET',
-      'POST',
-      'PATCH',
-      'OPTIONS'
-    ],
-    allowedHeaders: [
-      'content-type',
-      'authorization',
-      'x-request-id'
-    ],
-    exposedHeaders: [
-      'location',
-      'x-request-id'
-    ],
+    methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['content-type', 'authorization', 'x-request-id'],
+    exposedHeaders: ['location', 'x-request-id'],
     maxAge: 600
   })
 }

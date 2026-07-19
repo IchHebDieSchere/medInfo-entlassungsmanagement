@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  quality-and-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      mongodb:
+        image: mongo:8.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ ping: 1 })'"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+          --health-start-period 10s
+
+    env:
+      NODE_ENV: test
+      MONGODB_URI: mongodb://127.0.0.1:27017/med-info-fhir-test
+      AUTH_ENABLED: 'false'
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v6
+
+      - name: Node.js einrichten
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Abhängigkeiten reproduzierbar installieren
+        run: npm ci
+
+      - name: Linting, Format und schnelle Tests prüfen
+        run: npm run check
+
+      - name: MongoDB-Integrationstests ausführen
+        run: npm run test:integration
+
+      - name: Produktionsimage bauen
+        run: docker build --tag med-info-fhir:ci .

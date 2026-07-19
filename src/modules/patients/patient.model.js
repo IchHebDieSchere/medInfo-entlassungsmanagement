@@ -33,5 +33,4 @@ const patientSchema = new mongoose.Schema(
 )
 
 export const Patient =
-  mongoose.models.Patient ||
-  mongoose.model('Patient', patientSchema)
+  mongoose.models.Patient || mongoose.model('Patient', patientSchema)

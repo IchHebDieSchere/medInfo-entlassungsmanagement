@@ -28,5 +28,4 @@ export const createApiRateLimiter = ({
   })
 }
 
-export const apiRateLimiter =
-  createApiRateLimiter()
+export const apiRateLimiter = createApiRateLimiter()
