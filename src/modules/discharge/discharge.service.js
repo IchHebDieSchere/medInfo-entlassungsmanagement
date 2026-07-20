@@ -17,11 +17,7 @@ const validateDischargeInput = requestBody => {
 
   const patient = requestBody.patient
 
-  if (
-    !patient ||
-    typeof patient !== 'object' ||
-    Array.isArray(patient)
-  ) {
+  if (!patient || typeof patient !== 'object' || Array.isArray(patient)) {
     throw new AppError(
       400,
       'INVALID_PATIENT',
@@ -39,10 +35,7 @@ const validateDischargeInput = requestBody => {
     )
   }
 
-  const patientIdResult = z
-    .string()
-    .uuid('patient.patientId must be a valid UUID')
-    .safeParse(patientId.trim())
+  const patientIdResult = z.string().uuid().safeParse(patientId.trim())
 
   if (!patientIdResult.success) {
     throw new AppError(

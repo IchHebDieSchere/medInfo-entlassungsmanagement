@@ -34,29 +34,6 @@ export const dischargeRouter = Router()
  *     responses:
  *       '201':
  *         description: Entlassungsprozess wurde gestartet
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               required:
- *                 - data
- *               properties:
- *                 data:
- *                   type: object
- *                   required:
- *                     - transactionId
- *                     - status
- *                     - patientId
- *                   properties:
- *                     transactionId:
- *                       type: string
- *                       format: uuid
- *                     status:
- *                       type: string
- *                       example: STARTED
- *                     patientId:
- *                       type: string
- *                       format: uuid
  *       '400':
  *         description: Ungültige Eingabedaten
  */

@@ -1,4 +1,3 @@
-
 import { startDischarge } from './discharge.service.js'
 
 export const startDischargeHandler = async (req, res) => {
