@@ -28,7 +28,7 @@ const OUTPUT_DIR = 'demo-output';
 
 /**
  * Legt für die Demo einen frischen Test-Patienten samt offenem Encounter an.
- * Nur für diese Demo gedacht - fhir-client.js bekommt bewusst keine
+ * Nur für diese Demo gedacht - fhir-client.js bekommt bewusst keine 
  * createEncounter-Funktion (siehe Kommentar dort), das hier ist reines Test-Setup.
  */
 const seedPatientAndEncounter = async () => {

@@ -1,0 +1,76 @@
+{
+  "resourceType": "Bundle",
+  "type": "transaction",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "AuditEvent",
+        "type": {
+          "system": "http://terminology.hl7.org/CodeSystem/audit-event-type",
+          "code": "rest",
+          "display": "RESTful Operation"
+        },
+        "subtype": [
+          {
+            "system": "http://hl7.org/fhir/restful-interaction",
+            "code": "create"
+          }
+        ],
+        "action": "C",
+        "recorded": "2026-07-20T10:15:11.955Z",
+        "outcome": "0",
+        "agent": [
+          {
+            "who": {
+              "reference": "Device/medinfo-system"
+            },
+            "requestor": true
+          }
+        ],
+        "source": {
+          "observer": {
+            "display": "MedInfo Entlassungsmanagement"
+          }
+        },
+        "entity": [
+          {
+            "what": {
+              "reference": "Composition/1017"
+            }
+          },
+          {
+            "what": {
+              "reference": "Patient/1015"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "POST",
+        "url": "AuditEvent"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "Provenance",
+        "target": [
+          {
+            "reference": "Composition/1017"
+          }
+        ],
+        "recorded": "2026-07-20T10:15:11.955Z",
+        "agent": [
+          {
+            "who": {
+              "reference": "Device/medinfo-system"
+            }
+          }
+        ]
+      },
+      "request": {
+        "method": "POST",
+        "url": "Provenance"
+      }
+    }
+  ]
+}

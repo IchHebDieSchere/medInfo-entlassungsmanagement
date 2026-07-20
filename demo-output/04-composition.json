@@ -1,0 +1,47 @@
+{
+  "resourceType": "Composition",
+  "id": "1017",
+  "meta": {
+    "versionId": "1",
+    "lastUpdated": "2026-07-20T10:15:11.924+00:00"
+  },
+  "status": "final",
+  "type": {
+    "coding": [
+      {
+        "system": "http://loinc.org",
+        "code": "18842-5",
+        "display": "Discharge summary"
+      }
+    ]
+  },
+  "subject": {
+    "reference": "Patient/1015"
+  },
+  "encounter": {
+    "reference": "Encounter/1016"
+  },
+  "date": "2026-07-20T10:15:11.920Z",
+  "author": [
+    {
+      "reference": "Device/medinfo-system"
+    }
+  ],
+  "title": "Entlassungsbrief",
+  "section": [
+    {
+      "title": "Zusammenfassung",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Patient wurde entlassen.</div>"
+      }
+    },
+    {
+      "title": "Empfehlung",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Wiedervorstellung bei Beschwerden, Kontrolle beim Hausarzt in 2 Wochen.</div>"
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "resourceType": "Patient",
+  "id": "1021",
+  "meta": {
+    "versionId": "2",
+    "lastUpdated": "2026-07-20T10:15:20.354+00:00"
+  },
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">Gordian <b>REINHOLD </b></div><table class=\"hapiPropertyTable\"><tbody><tr><td>Date of birth</td><td><span>01 January 2000</span></td></tr></tbody></table></div>"
+  },
+  "name": [
+    {
+      "family": "Reinhold",
+      "given": [
+        "Gordian",
+        "Lennart"
+      ]
+    }
+  ],
+  "birthDate": "2000-01-01"
+}

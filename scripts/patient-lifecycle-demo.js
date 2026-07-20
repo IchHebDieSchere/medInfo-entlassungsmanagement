@@ -8,7 +8,7 @@
 // Läuft unabhängig von discharge-flow-demo.js - legt sich seinen eigenen Test-Patienten an.
 //
 // Voraussetzung: lokaler FHIR-Server läuft --> docker compose -f docker-compose.fhir.yml up -d
-// Ausführen mit: node --env-file=.env scripts/patient-lifecycle-demo.js
+// Ausführen mit: node --env-file=.env scripts/patient-lifecycle-demo.js 
 // Speichert alle Antworten unter demo-output-patient/
 
 import fs from 'node:fs/promises';
