@@ -1,59 +1,20 @@
 import { randomUUID } from 'node:crypto'
-import { z } from 'zod'
-import { AppError } from '../../errors/app-error.js'
+import { validateDischargeInput } from './discharge.validation.js'
 
-const validateDischargeInput = requestBody => {
-  if (
-    !requestBody ||
-    typeof requestBody !== 'object' ||
-    Array.isArray(requestBody)
-  ) {
-    throw new AppError(
-      400,
-      'INVALID_REQUEST_BODY',
-      'The request body must be a JSON object'
-    )
-  }
-
-  const patient = requestBody.patient
-
-  if (!patient || typeof patient !== 'object' || Array.isArray(patient)) {
-    throw new AppError(
-      400,
-      'INVALID_PATIENT',
-      'patient must be a JSON object'
-    )
-  }
-
-  const patientId = patient.patientId
-
-  if (typeof patientId !== 'string' || patientId.trim() === '') {
-    throw new AppError(
-      400,
-      'INVALID_PATIENT_ID',
-      'patient.patientId is required'
-    )
-  }
-
-  const patientIdResult = z.string().uuid().safeParse(patientId.trim())
-
-  if (!patientIdResult.success) {
-    throw new AppError(
-      400,
-      'INVALID_PATIENT_ID',
-      'patient.patientId must be a valid UUID'
-    )
-  }
-
-  return patientIdResult.data
-}
-
-export const startDischarge = requestBody => {
-  const patientId = validateDischargeInput(requestBody)
+export const startDischarge = async requestBody => {
+  const input = validateDischargeInput(requestBody)
+  const transactionId = randomUUID()
 
   return {
-    transactionId: randomUUID(),
-    status: 'STARTED',
-    patientId
+    transactionId,
+    status: 'VALIDATED',
+    patientId: input.patient.patientId,
+    encounterId: input.encounter.encounterId,
+    summary: {
+      diagnoses: input.diagnoses.length,
+      procedures: input.procedures.length,
+      medications: input.medications.length,
+      followUp: input.followUp 
+    }
   }
 }
