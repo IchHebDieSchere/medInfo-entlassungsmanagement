@@ -1,0 +1,24 @@
+{
+  "resourceType": "DocumentReference",
+  "status": "current",
+  "type": {
+    "coding": [
+      { "system": "http://loinc.org", "code": "18842-5", "display": "Discharge summary" }
+    ]
+  },
+  "subject": { "reference": "Patient/596" },
+  "date": "2026-07-19T09:31:00.000Z",
+  "content": [
+    {
+      "attachment": {
+        "contentType": "text/plain",
+        "data": "RW50bGFzc3VuZ3NicmllZjogUGF0aWVudDppbiB3dXJkZSBuYWNoIHVuYXVmZsOkbGxpZ2VtIFZlcmxhdWYgZW50bGFzc2VuLg==",
+        "title": "Entlassungsbrief"
+      }
+    }
+  ],
+  "context": {
+    "encounter": [{ "reference": "Encounter/1201" }],
+    "related": [{ "reference": "Composition/789" }]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "resourceType": "Provenance",
+  "target": [{ "reference": "Composition/789" }],
+  "recorded": "2026-07-19T09:33:00.000Z",
+  "agent": [
+    { "who": { "reference": "Device/medinfo-system" } }
+  ]
+}
