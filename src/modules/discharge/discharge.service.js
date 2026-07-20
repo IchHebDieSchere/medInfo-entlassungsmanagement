@@ -118,7 +118,7 @@ const findOrCreateFhirPatient = async localPatient => {
 
 const patientReferenceMatches = (encounterPatientReference, fhirPatientId) => {
   if (!encounterPatientReference) {
-    return true
+  return false
   }
 
   const expectedReference = `Patient/${fhirPatientId}`
