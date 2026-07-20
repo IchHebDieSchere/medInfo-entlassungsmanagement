@@ -96,6 +96,24 @@ test('Swagger specification exposes all current endpoints', async () => {
   assert.ok(specification.paths['/api/v1/patients']?.post)
   assert.ok(specification.paths['/api/v1/patients/{patientId}']?.get)
   assert.ok(specification.paths['/api/v1/patients/{patientId}']?.patch)
+  
+  assert.ok(specification.paths['/api/v1/discharge']?.post)
+  assert.ok(specification.paths['/api/v1/audit/{transactionId}']?.get)
+
+  assert.equal(
+    specification.paths['/api/v1/discharge'].post[
+      'x-required-scopes'
+    ][0],
+    'discharge:write'
+  )
+
+  assert.equal(
+    specification.paths['/api/v1/audit/{transactionId}'].get[
+      'x-required-scopes'
+    ][0],
+    'audit:read'
+  )
+
   assert.equal(
     specification.paths['/api/v1/patients'].post['x-required-scopes'][0],
     'patient:write'
@@ -214,4 +232,89 @@ test('invalid patient IDs are rejected before database access', async () => {
   assert.equal(response.status, 400)
   assert.equal(body.error.code, 'VALIDATION_ERROR')
   assert.equal(body.error.details[0].path, 'patientId')
+})
+
+test('invalid discharge input is rejected before workflow execution', async () => {
+  const response = await fetch(`${baseUrl}/api/v1/discharge`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify({
+      patient: {
+        patientId: 'not-a-uuid'
+      },
+      encounter: {
+        encounterId: 'encounter-1'
+      },
+      diagnoses: [],
+      procedures: [],
+      medications: [],
+      followUp: {
+        type: 'Hausarztkontrolle',
+        date: '27.07.2026'
+      }
+    })
+  })
+
+  const body = await response.json()
+
+  assert.equal(response.status, 400)
+  assert.equal(body.error.code, 'VALIDATION_ERROR')
+  assert.ok(body.error.requestId)
+  assert.ok(Array.isArray(body.error.details))
+
+  const paths = body.error.details.map(detail => detail.path)
+
+  assert.ok(paths.includes('patient.patientId'))
+  assert.ok(paths.includes('diagnoses'))
+  assert.ok(paths.includes('followUp.date'))
+})
+
+test('unknown discharge fields are rejected', async () => {
+  const response = await fetch(`${baseUrl}/api/v1/discharge`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify({
+      patient: {
+        patientId: 'a38e7f0a-69f0-4ab8-b668-e446730bc220'
+      },
+      encounter: {
+        encounterId: 'encounter-1'
+      },
+      diagnoses: [
+        {
+          code: 'J18.9',
+          display: 'Pneumonie'
+        }
+      ],
+      procedures: [],
+      medications: [],
+      followUp: {
+        type: 'Hausarztkontrolle',
+        date: '2026-07-27'
+      },
+      unsupportedField: true
+    })
+  })
+
+  const body = await response.json()
+
+  assert.equal(response.status, 400)
+  assert.equal(body.error.code, 'VALIDATION_ERROR')
+  assert.ok(body.error.requestId)
+})
+
+test('invalid audit transaction IDs are rejected', async () => {
+  const response = await fetch(
+    `${baseUrl}/api/v1/audit/not-a-uuid`
+  )
+
+  const body = await response.json()
+
+  assert.equal(response.status, 400)
+  assert.equal(body.error.code, 'VALIDATION_ERROR')
+  assert.equal(body.error.details[0].path, 'transactionId')
 })
