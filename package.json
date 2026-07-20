@@ -9,7 +9,9 @@
     "start:dev": "nodemon --watch src --exec \"node --env-file-if-exists=.env\" src/service.js",
     "test": "node --test test/app.test.js",
     "test:integration": "node --env-file=.env.test --test test/integration/patient.integration.test.js",
-    "mongodb": "docker run --rm -v ./database:/data/db -p 27017:27017 mongo:8"
+    "mongodb": "docker run --rm -v ./database:/data/db -p 27017:27017 mongo:8",
+    "fhir": "docker compose -f docker-compose.fhir.yml up -d",
+    "fhir:down": "docker compose -f docker-compose.fhir.yml down"
   },
   "repository": {
     "type": "git",
