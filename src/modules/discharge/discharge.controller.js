@@ -3,10 +3,7 @@ import {
   toDischargeResponse
 } from './discharge.mapper.js'
 
-import {
-  getDischargeAuditTrail,
-  startDischarge
-} from './discharge.service.js'
+import { getDischargeAuditTrail, startDischarge } from './discharge.service.js'
 
 export const startDischargeHandler = async (req, res) => {
   const result = await startDischarge(req.validated.body)

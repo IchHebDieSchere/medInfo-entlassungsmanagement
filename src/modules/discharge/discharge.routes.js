@@ -1,7 +1,20 @@
 import { Router } from 'express'
-import { startDischargeHandler } from './discharge.controller.js'
+
+import { requireScopes } from '../../middleware/authorization.middleware.js'
+import { validateRequest } from '../../middleware/validation.middleware.js'
+
+import {
+  getDischargeAuditHandler,
+  startDischargeHandler
+} from './discharge.controller.js'
+
+import {
+  auditTransactionIdParamsSchema,
+  dischargeRequestSchema
+} from './discharge.validation.js'
 
 export const dischargeRouter = Router()
+export const auditRouter = Router()
 
 /**
  * @openapi
@@ -9,10 +22,18 @@ export const dischargeRouter = Router()
  *   post:
  *     tags:
  *       - Discharge
- *     summary: Entlassungsprozess starten
+ *     summary: Entlassungsworkflow ausführen
  *     description: >
- *       Validiert Patient, Encounter, Diagnosen, Prozeduren,
- *       Medikation und Weiterbehandlung und startet den Entlassungsprozess.
+ *       Prüft Patient, Encounter, Diagnosen, Prozeduren,
+ *       Medikation und Weiterbehandlung. Anschließend werden
+ *       der Encounter abgeschlossen, der Arztbrief erzeugt
+ *       und alle Schritte lokal protokolliert.
+ *     security:
+ *       - BearerAuth: []
+ *     x-required-scopes:
+ *       - discharge:write
+ *     parameters:
+ *       - $ref: '#/components/parameters/RequestId'
  *     requestBody:
  *       required: true
  *       content:
@@ -30,26 +51,28 @@ export const dischargeRouter = Router()
  *             properties:
  *               patient:
  *                 type: object
+ *                 additionalProperties: false
  *                 required:
  *                   - patientId
  *                 properties:
  *                   patientId:
  *                     type: string
  *                     format: uuid
- *                     example: a38e7f0a-69f0-4ab8-b668-e446730bc220
  *               encounter:
  *                 type: object
+ *                 additionalProperties: false
  *                 required:
  *                   - encounterId
  *                 properties:
  *                   encounterId:
  *                     type: string
- *                     example: encounter-1001
+ *                     example: "123"
  *               diagnoses:
  *                 type: array
  *                 minItems: 1
  *                 items:
  *                   type: object
+ *                   additionalProperties: false
  *                   required:
  *                     - code
  *                     - display
@@ -64,6 +87,7 @@ export const dischargeRouter = Router()
  *                 type: array
  *                 items:
  *                   type: object
+ *                   additionalProperties: false
  *                   required:
  *                     - code
  *                     - display
@@ -78,6 +102,7 @@ export const dischargeRouter = Router()
  *                 type: array
  *                 items:
  *                   type: object
+ *                   additionalProperties: false
  *                   required:
  *                     - name
  *                     - dosage
@@ -90,6 +115,7 @@ export const dischargeRouter = Router()
  *                       example: 500 mg dreimal täglich
  *               followUp:
  *                 type: object
+ *                 additionalProperties: false
  *                 required:
  *                   - type
  *                   - date
@@ -101,86 +127,112 @@ export const dischargeRouter = Router()
  *                     type: string
  *                     format: date
  *                     example: 2026-07-27
+ *                   notes:
+ *                     type: string
+ *                     example: Kontrolle des Allgemeinzustands
  *           example:
  *             patient:
  *               patientId: a38e7f0a-69f0-4ab8-b668-e446730bc220
  *             encounter:
- *               encounterId: encounter-1001
+ *               encounterId: "123"
  *             diagnoses:
  *               - code: J18.9
  *                 display: Pneumonie
- *             procedures:
- *               - code: 8-800
- *                 display: Transfusion
+ *             procedures: []
  *             medications:
  *               - name: Amoxicillin
  *                 dosage: 500 mg dreimal täglich
  *             followUp:
  *               type: Hausarztkontrolle
  *               date: 2026-07-27
+ *               notes: Kontrolle des Allgemeinzustands
  *     responses:
  *       '201':
- *         description: Eingabe wurde validiert und der Entlassungsprozess gestartet
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 data:
- *                   type: object
- *                   properties:
- *                     transactionId:
- *                       type: string
- *                       format: uuid
- *                     status:
- *                       type: string
- *                       example: VALIDATED
- *                     patientId:
- *                       type: string
- *                       format: uuid
- *                     encounterId:
- *                       type: string
- *                       example: encounter-1001
- *                     summary:
- *                       type: object
- *                       properties:
- *                         diagnoses:
- *                           type: integer
- *                           example: 1
- *                         procedures:
- *                           type: integer
- *                           example: 1
- *                         medications:
- *                           type: integer
- *                           example: 1
- *                         followUp:
- *                           type: object
- *                           properties:
- *                             type:
- *                               type: string
- *                               example: Hausarztkontrolle
- *                             date:
- *                               type: string
- *                               format: date
- *                               example: 2026-07-27
+ *         description: Entlassungsworkflow wurde erfolgreich abgeschlossen
  *       '400':
- *         description: Ungültige oder unvollständige Eingabedaten
+ *         description: Eingabedaten sind ungültig
  *         content:
  *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: object
- *                   properties:
- *                     code:
- *                       type: string
- *                       example: INVALID_DISCHARGE_REQUEST
- *                     message:
- *                       type: string
- *                       example: encounter is required
- *                     requestId:
- *                       type: string
- *                       example: 3ec20ccb-43fa-4635-bf78-f2bc42cd2022
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '404':
+ *         description: Patient oder Encounter wurde nicht gefunden
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '409':
+ *         description: Encounter ist bereits beendet oder gehört zu einem anderen Patienten
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '502':
+ *         description: Fehler bei der Kommunikation mit dem FHIR-Server
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ *       '429':
+ *         $ref: '#/components/responses/RateLimitExceeded'
  */
-dischargeRouter.post('/', startDischargeHandler)
+dischargeRouter.post(
+  '/',
+  requireScopes('discharge:write'),
+  validateRequest({
+    body: dischargeRequestSchema
+  }),
+  startDischargeHandler
+)
+
+/**
+ * @openapi
+ * /api/v1/audit/{transactionId}:
+ *   get:
+ *     tags:
+ *       - Discharge
+ *     summary: Audit-Nachweis eines Entlassungsvorgangs abrufen
+ *     security:
+ *       - BearerAuth: []
+ *     x-required-scopes:
+ *       - audit:read
+ *     parameters:
+ *       - $ref: '#/components/parameters/RequestId'
+ *       - in: path
+ *         name: transactionId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       '200':
+ *         description: Audit-Einträge wurden geladen
+ *       '400':
+ *         description: transactionId ist ungültig
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '404':
+ *         description: Keine Audit-Einträge gefunden
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       '401':
+ *         $ref: '#/components/responses/Unauthorized'
+ *       '403':
+ *         $ref: '#/components/responses/Forbidden'
+ */
+auditRouter.get(
+  '/:transactionId',
+  requireScopes('audit:read'),
+  validateRequest({
+    params: auditTransactionIdParamsSchema
+  }),
+  getDischargeAuditHandler
+)

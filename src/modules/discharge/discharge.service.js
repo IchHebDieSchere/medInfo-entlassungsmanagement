@@ -26,17 +26,13 @@ const FHIR_PATIENT_IDENTIFIER_SYSTEM = 'urn:medinfo:patient-id'
 const callFhir = async (
   operationName,
   operation,
-  {
-    notFoundCode,
-    notFoundMessage
-  } = {}
+  { notFoundCode, notFoundMessage } = {}
 ) => {
   try {
     return await operation()
   } catch (error) {
     const isNotFound =
-      typeof error.message === 'string' &&
-      /->\s*404\b/.test(error.message)
+      typeof error.message === 'string' && /->\s*404\b/.test(error.message)
 
     if (isNotFound && notFoundCode) {
       throw new AppError(404, notFoundCode, notFoundMessage)
@@ -50,17 +46,8 @@ const callFhir = async (
   }
 }
 
-const createAuditWriter = ({
-  transactionId,
-  patientId,
-  encounterId
-}) => {
-  return async ({
-    step,
-    status = 'SUCCESS',
-    message,
-    metadata
-  }) => {
+const createAuditWriter = ({ transactionId, patientId, encounterId }) => {
+  return async ({ step, status = 'SUCCESS', message, metadata }) => {
     await createDischargeAudit({
       transactionId,
       patientId,
@@ -100,15 +87,12 @@ const toFhirPatientResource = localPatient => {
 }
 
 const findOrCreateFhirPatient = async localPatient => {
-  const identifierSearchValue =
-    `${FHIR_PATIENT_IDENTIFIER_SYSTEM}|${localPatient.patientId}`
+  const identifierSearchValue = `${FHIR_PATIENT_IDENTIFIER_SYSTEM}|${localPatient.patientId}`
 
-  const searchBundle = await callFhir(
-    'find patient',
-    () =>
-      findPatient({
-        identifier: identifierSearchValue
-      })
+  const searchBundle = await callFhir('find patient', () =>
+    findPatient({
+      identifier: identifierSearchValue
+    })
   )
 
   const existingPatient = searchBundle.entry?.find(
@@ -122,9 +106,8 @@ const findOrCreateFhirPatient = async localPatient => {
     }
   }
 
-  const createdPatient = await callFhir(
-    'create patient',
-    () => createFhirPatient(toFhirPatientResource(localPatient))
+  const createdPatient = await callFhir('create patient', () =>
+    createFhirPatient(toFhirPatientResource(localPatient))
   )
 
   return {
@@ -133,10 +116,7 @@ const findOrCreateFhirPatient = async localPatient => {
   }
 }
 
-const patientReferenceMatches = (
-  encounterPatientReference,
-  fhirPatientId
-) => {
+const patientReferenceMatches = (encounterPatientReference, fhirPatientId) => {
   if (!encounterPatientReference) {
     return true
   }
@@ -177,9 +157,7 @@ const formatMedications = medications => {
 
   return medications
     .map(medication => {
-      return `${escapeHtml(medication.name)}: ${escapeHtml(
-        medication.dosage
-      )}`
+      return `${escapeHtml(medication.name)}: ${escapeHtml(medication.dosage)}`
     })
     .join('; ')
 }
@@ -225,9 +203,7 @@ const buildDischargeDocumentText = input => {
 
   const medications =
     input.medications.length > 0
-      ? input.medications
-          .map(item => `${item.name}: ${item.dosage}`)
-          .join(', ')
+      ? input.medications.map(item => `${item.name}: ${item.dosage}`).join(', ')
       : 'Keine'
 
   return [
@@ -238,9 +214,7 @@ const buildDischargeDocumentText = input => {
     `Medikation: ${medications}`,
     `Weiterbehandlung: ${input.followUp.type}`,
     `Termin: ${input.followUp.date}`,
-    ...(input.followUp.notes
-      ? [`Hinweise: ${input.followUp.notes}`]
-      : [])
+    ...(input.followUp.notes ? [`Hinweise: ${input.followUp.notes}`] : [])
   ].join('\n')
 }
 
@@ -286,8 +260,7 @@ export const startDischarge = async input => {
 
     currentStep = 'FHIR_PATIENT_SYNCHRONIZATION'
 
-    const fhirPatientResult =
-      await findOrCreateFhirPatient(localPatient)
+    const fhirPatientResult = await findOrCreateFhirPatient(localPatient)
 
     const fhirPatient = fhirPatientResult.patient
 
@@ -322,10 +295,7 @@ export const startDischarge = async input => {
     }
 
     if (
-      !patientReferenceMatches(
-        encounter.subject?.reference,
-        fhirPatient.id
-      )
+      !patientReferenceMatches(encounter.subject?.reference, fhirPatient.id)
     ) {
       throw new AppError(
         409,
@@ -344,10 +314,7 @@ export const startDischarge = async input => {
 
     currentStep = 'ENCOUNTER_CLOSING'
 
-    await callFhir(
-      'close encounter',
-      () => closeEncounter(encounterId)
-    )
+    await callFhir('close encounter', () => closeEncounter(encounterId))
 
     await writeAudit({
       step: 'ENCOUNTER_CLOSED',
@@ -356,15 +323,13 @@ export const startDischarge = async input => {
 
     currentStep = 'COMPOSITION_CREATION'
 
-    const composition = await callFhir(
-      'create discharge composition',
-      () =>
-        createDischargeComposition({
-          patientId: fhirPatient.id,
-          encounterId,
-          title: 'Entlassungsbrief',
-          sections: buildCompositionSections(input)
-        })
+    const composition = await callFhir('create discharge composition', () =>
+      createDischargeComposition({
+        patientId: fhirPatient.id,
+        encounterId,
+        title: 'Entlassungsbrief',
+        sections: buildCompositionSections(input)
+      })
     )
 
     await writeAudit({
@@ -379,17 +344,15 @@ export const startDischarge = async input => {
 
     const documentText = buildDischargeDocumentText(input)
 
-    const documentReference = await callFhir(
-      'create document reference',
-      () =>
-        createDocumentReference({
-          patientId: fhirPatient.id,
-          encounterId,
-          compositionId: composition.id,
-          contentType: 'text/plain',
-          data: toBase64(documentText),
-          title: 'Entlassungsbrief'
-        })
+    const documentReference = await callFhir('create document reference', () =>
+      createDocumentReference({
+        patientId: fhirPatient.id,
+        encounterId,
+        compositionId: composition.id,
+        contentType: 'text/plain',
+        data: toBase64(documentText),
+        title: 'Entlassungsbrief'
+      })
     )
 
     await writeAudit({
@@ -420,15 +383,13 @@ export const startDischarge = async input => {
       }
     ])
 
-    await callFhir(
-      'send AuditEvent and Provenance transaction',
-      () => sendTransactionBundle(auditBundle)
+    await callFhir('send AuditEvent and Provenance transaction', () =>
+      sendTransactionBundle(auditBundle)
     )
 
     await writeAudit({
       step: 'FHIR_AUDIT_RECORDED',
-      message:
-        'FHIR AuditEvent and Provenance were recorded'
+      message: 'FHIR AuditEvent and Provenance were recorded'
     })
 
     currentStep = 'WORKFLOW_COMPLETION'
@@ -485,8 +446,7 @@ export const startDischarge = async input => {
 }
 
 export const getDischargeAuditTrail = async transactionId => {
-  const auditEntries =
-    await listDischargeAuditsByTransactionId(transactionId)
+  const auditEntries = await listDischargeAuditsByTransactionId(transactionId)
 
   if (auditEntries.length === 0) {
     throw new AppError(
