@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 
 import { AppError } from '../../errors/app-error.js'
+
 import {
   buildAuditEventResource,
   buildProvenanceResource,
@@ -14,12 +15,20 @@ import {
   sendTransactionBundle,
   toBase64
 } from '../../fhir-client.js'
+
 import { getPatientById } from '../patients/patient.service.js'
 
 import {
   createDischargeAudit,
   listDischargeAuditsByTransactionId
 } from './discharge-audit.service.js'
+
+import {
+  createDischargeWorkflow,
+  transitionDischargeWorkflow
+} from './discharge-workflow.service.js'
+
+import { DISCHARGE_STATUS } from './discharge-workflow.js'
 
 const FHIR_PATIENT_IDENTIFIER_SYSTEM = 'urn:medinfo:patient-id'
 
@@ -118,7 +127,7 @@ const findOrCreateFhirPatient = async localPatient => {
 
 const patientReferenceMatches = (encounterPatientReference, fhirPatientId) => {
   if (!encounterPatientReference) {
-  return false
+    return false
   }
 
   const expectedReference = `Patient/${fhirPatientId}`
@@ -229,9 +238,18 @@ export const startDischarge = async input => {
     encounterId
   })
 
+  let workflowCreated = false
   let currentStep = 'REQUEST_RECEIVED'
 
   try {
+    await createDischargeWorkflow({
+      transactionId,
+      patientId,
+      encounterId
+    })
+
+    workflowCreated = true
+
     await writeAudit({
       step: 'REQUEST_RECEIVED',
       message: 'Discharge request was received'
@@ -248,6 +266,8 @@ export const startDischarge = async input => {
         medicationCount: input.medications.length
       }
     })
+
+    await transitionDischargeWorkflow(transactionId, DISCHARGE_STATUS.VALIDATED)
 
     currentStep = 'LOCAL_PATIENT_LOOKUP'
 
@@ -274,6 +294,14 @@ export const startDischarge = async input => {
         created: fhirPatientResult.created
       }
     })
+
+    await transitionDischargeWorkflow(
+      transactionId,
+      DISCHARGE_STATUS.PATIENT_SYNCHRONIZED,
+      {
+        fhirPatientId: fhirPatient.id
+      }
+    )
 
     currentStep = 'FHIR_ENCOUNTER_LOOKUP'
 
@@ -312,6 +340,11 @@ export const startDischarge = async input => {
       }
     })
 
+    await transitionDischargeWorkflow(
+      transactionId,
+      DISCHARGE_STATUS.ENCOUNTER_VALIDATED
+    )
+
     currentStep = 'ENCOUNTER_CLOSING'
 
     await callFhir('close encounter', () => closeEncounter(encounterId))
@@ -320,6 +353,11 @@ export const startDischarge = async input => {
       step: 'ENCOUNTER_CLOSED',
       message: 'FHIR encounter was closed'
     })
+
+    await transitionDischargeWorkflow(
+      transactionId,
+      DISCHARGE_STATUS.ENCOUNTER_CLOSED
+    )
 
     currentStep = 'COMPOSITION_CREATION'
 
@@ -339,6 +377,14 @@ export const startDischarge = async input => {
         compositionId: composition.id
       }
     })
+
+    await transitionDischargeWorkflow(
+      transactionId,
+      DISCHARGE_STATUS.COMPOSITION_CREATED,
+      {
+        compositionId: composition.id
+      }
+    )
 
     currentStep = 'DOCUMENT_REFERENCE_CREATION'
 
@@ -362,6 +408,14 @@ export const startDischarge = async input => {
         documentReferenceId: documentReference.id
       }
     })
+
+    await transitionDischargeWorkflow(
+      transactionId,
+      DISCHARGE_STATUS.DOCUMENT_REFERENCE_CREATED,
+      {
+        documentReferenceId: documentReference.id
+      }
+    )
 
     currentStep = 'FHIR_AUDIT_CREATION'
 
@@ -392,21 +446,34 @@ export const startDischarge = async input => {
       message: 'FHIR AuditEvent and Provenance were recorded'
     })
 
+    await transitionDischargeWorkflow(
+      transactionId,
+      DISCHARGE_STATUS.FHIR_AUDIT_RECORDED
+    )
+
     currentStep = 'WORKFLOW_COMPLETION'
 
-    const completedAt = new Date().toISOString()
+    const completedAt = new Date()
 
     await writeAudit({
       step: 'WORKFLOW_COMPLETED',
       message: 'Discharge workflow was completed successfully',
       metadata: {
-        completedAt
+        completedAt: completedAt.toISOString()
       }
     })
 
+    await transitionDischargeWorkflow(
+      transactionId,
+      DISCHARGE_STATUS.COMPLETED,
+      {
+        completedAt
+      }
+    )
+
     return {
       transactionId,
-      status: 'COMPLETED',
+      status: DISCHARGE_STATUS.COMPLETED,
       patientId,
       encounterId,
       fhir: {
@@ -414,7 +481,7 @@ export const startDischarge = async input => {
         compositionId: composition.id,
         documentReferenceId: documentReference.id
       },
-      completedAt
+      completedAt: completedAt.toISOString()
     }
   } catch (error) {
     const applicationError =
@@ -425,6 +492,22 @@ export const startDischarge = async input => {
             'DISCHARGE_WORKFLOW_FAILED',
             'Discharge workflow failed'
           )
+
+    if (workflowCreated) {
+      try {
+        await transitionDischargeWorkflow(
+          transactionId,
+          DISCHARGE_STATUS.FAILED,
+          {
+            failedStep: currentStep,
+            failureCode: applicationError.code
+          }
+        )
+      } catch {
+        // Der ursprüngliche Workflowfehler
+        // soll nicht überschrieben werden.
+      }
+    }
 
     try {
       await writeAudit({
@@ -437,8 +520,8 @@ export const startDischarge = async input => {
         }
       })
     } catch {
-      // Der ursprüngliche Workflowfehler bleibt wichtiger
-      // als ein zusätzlicher Fehler beim Schreiben des Audit-Logs.
+      // Der ursprüngliche Workflowfehler
+      // soll nicht überschrieben werden.
     }
 
     throw applicationError

@@ -56,7 +56,7 @@ export const ALLOWED_DISCHARGE_TRANSITIONS = Object.freeze({
   [DISCHARGE_STATUS.FAILED]: []
 })
 
-export function canTransitionDischarge(currentStatus, nextStatus) {
+export const canTransitionDischarge = (currentStatus, nextStatus) => {
   const allowedNextStatuses = ALLOWED_DISCHARGE_TRANSITIONS[currentStatus]
 
   if (!allowedNextStatuses) {
