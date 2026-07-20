@@ -19,7 +19,9 @@
     "check": "npm run lint && npm run format:check && npm test",
     "mongodb": "docker run --rm -v ./database:/data/db -p 27017:27017 mongo:8",
     "compose:up": "docker compose up --build",
-    "compose:down": "docker compose down"
+    "compose:down": "docker compose down",
+    "fhir": "docker compose -f docker-compose.fhir.yml up -d",
+    "fhir:down": "docker compose -f docker-compose.fhir.yml down"
   },
   "repository": {
     "type": "git",

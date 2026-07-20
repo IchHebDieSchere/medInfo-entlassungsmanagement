@@ -1,0 +1,21 @@
+{
+  "resourceType": "Patient",
+  "id": "1015",
+  "meta": {
+    "versionId": "1",
+    "lastUpdated": "2026-07-20T10:15:11.837+00:00"
+  },
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">Erika <b>MUSTERMANN </b></div><table class=\"hapiPropertyTable\"><tbody><tr><td>Date of birth</td><td><span>01 January 1990</span></td></tr></tbody></table></div>"
+  },
+  "name": [
+    {
+      "family": "Mustermann",
+      "given": [
+        "Erika"
+      ]
+    }
+  ],
+  "birthDate": "1990-01-01"
+}

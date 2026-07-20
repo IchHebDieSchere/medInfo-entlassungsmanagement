@@ -1,0 +1,40 @@
+# docker-compose.fhir.yml
+# Startet einen lokalen HAPI-FHIR-R4-Server (JPA-Server) mit In-Memory-Datenbank (H2).
+# Daten sind NICHT persistent - bei jedem Neustart des Containers ist der Server leer
+# (deshalb legt scripts/discharge-flow-demo.js sich selbst einen Test-Patienten an).
+#
+# Diese Datei ist bewusst eigenständig, damit sie sich unabhängig von einer eventuell
+# schon vorhandenen docker-compose.yml (z.B. für MongoDB) nutzen lässt. Falls es bereits
+# eine docker-compose.yml gibt, kann der Service "fhir" von hier auch einfach dort als
+# weiterer Eintrag unter "services:" ergänzt werden - dann reicht ein normales
+# "docker compose up -d" für alles zusammen.
+#
+# Start:   docker compose -f docker-compose.fhir.yml up -d
+# Stop:    docker compose -f docker-compose.fhir.yml down
+# Logs:    docker compose -f docker-compose.fhir.yml logs -f
+# Status:  docker compose -f docker-compose.fhir.yml ps
+#
+# FHIR-Endpunkt danach erreichbar unter: http://localhost:8080/fhir
+# Health-/Metadata-Check (im Browser):   http://localhost:8080/fhir/metadata
+#
+# Hinweis: Der allererste Start dauert oft 1-2 Minuten (Image ist groß, JVM-Start dauert).
+# "docker compose logs -f fhir" zeigen und warten, bis "Started Application" erscheint.
+
+services:
+  fhir:
+    image: hapiproject/hapi:latest
+    container_name: medinfo-fhir
+    ports:
+      - "8080:8080"
+    environment:
+      hapi.fhir.fhir_version: R4
+      hapi.fhir.default_encoding: json
+      hapi.fhir.narrative_enabled: "true"
+      # fhir-client.js nutzt "Device/medinfo-system" als reinen Platzhalter für
+      # author/agent (siehe Kommentar dort) - diese Ressource wird nirgends angelegt.
+      # Damit Composition/AuditEvent/Provenance trotzdem geschrieben werden können,
+      # prüft der Server beim Schreiben nicht, ob referenzierte Ressourcen existieren.
+      hapi.fhir.enforce_referential_integrity_on_write: "false"
+      # H2 In-Memory ist der Default des Images, wenn keine externe Datasource
+      # konfiguriert wird - hier also bewusst keine DB-Umgebungsvariablen gesetzt.
+    restart: unless-stopped

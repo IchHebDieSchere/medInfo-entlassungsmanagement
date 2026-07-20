@@ -1,0 +1,43 @@
+{
+  "resourceType": "DocumentReference",
+  "id": "1018",
+  "meta": {
+    "versionId": "1",
+    "lastUpdated": "2026-07-20T10:15:11.943+00:00"
+  },
+  "status": "current",
+  "type": {
+    "coding": [
+      {
+        "system": "http://loinc.org",
+        "code": "18842-5",
+        "display": "Discharge summary"
+      }
+    ]
+  },
+  "subject": {
+    "reference": "Patient/1015"
+  },
+  "date": "2026-07-20T10:15:11.939Z",
+  "content": [
+    {
+      "attachment": {
+        "contentType": "text/plain",
+        "data": "RW50bGFzc3VuZ3NicmllZjogUGF0aWVudCB3dXJkZSBlbnRsYXNzZW4u",
+        "title": "Entlassungsbrief"
+      }
+    }
+  ],
+  "context": {
+    "encounter": [
+      {
+        "reference": "Encounter/1016"
+      }
+    ],
+    "related": [
+      {
+        "reference": "Composition/1017"
+      }
+    ]
+  }
+}

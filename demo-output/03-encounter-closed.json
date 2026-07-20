@@ -1,0 +1,20 @@
+{
+  "resourceType": "Encounter",
+  "id": "1016",
+  "meta": {
+    "versionId": "2",
+    "lastUpdated": "2026-07-20T10:15:11.906+00:00"
+  },
+  "status": "finished",
+  "class": {
+    "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+    "code": "IMP",
+    "display": "inpatient encounter"
+  },
+  "subject": {
+    "reference": "Patient/1015"
+  },
+  "period": {
+    "end": "2026-07-20T10:15:11.903Z"
+  }
+}

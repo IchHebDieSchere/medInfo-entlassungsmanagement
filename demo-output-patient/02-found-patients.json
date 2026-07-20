@@ -1,0 +1,72 @@
+{
+  "resourceType": "Bundle",
+  "id": "72ede1fa-5642-4442-8dc4-607e36f6cf88",
+  "meta": {
+    "lastUpdated": "2026-07-20T10:15:20.339+00:00"
+  },
+  "type": "searchset",
+  "total": 2,
+  "link": [
+    {
+      "relation": "self",
+      "url": "http://localhost:8080/fhir/Patient?family=Reinhold"
+    }
+  ],
+  "entry": [
+    {
+      "fullUrl": "http://localhost:8080/fhir/Patient/1012",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "1012",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2026-07-20T10:11:11.594+00:00"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">Gordian <b>REINHOLD </b></div><table class=\"hapiPropertyTable\"><tbody><tr><td>Date of birth</td><td><span>01 January 2000</span></td></tr></tbody></table></div>"
+        },
+        "name": [
+          {
+            "family": "Reinhold",
+            "given": [
+              "Gordian",
+              "Lennart"
+            ]
+          }
+        ],
+        "birthDate": "2000-01-01"
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "http://localhost:8080/fhir/Patient/1021",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "1021",
+        "meta": {
+          "versionId": "1",
+          "lastUpdated": "2026-07-20T10:15:20.314+00:00"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">Gordian <b>REINHOLD </b></div><table class=\"hapiPropertyTable\"><tbody><tr><td>Date of birth</td><td><span>01 January 2000</span></td></tr></tbody></table></div>"
+        },
+        "name": [
+          {
+            "family": "Reinhold",
+            "given": [
+              "Gordian"
+            ]
+          }
+        ],
+        "birthDate": "2000-01-01"
+      },
+      "search": {
+        "mode": "match"
+      }
+    }
+  ]
+}

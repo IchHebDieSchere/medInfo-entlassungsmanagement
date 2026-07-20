@@ -1,0 +1,30 @@
+{
+  "resourceType": "Composition",
+  "status": "final",
+  "type": {
+    "coding": [
+      { "system": "http://loinc.org", "code": "18842-5", "display": "Discharge summary" }
+    ]
+  },
+  "subject": { "reference": "Patient/596" },
+  "encounter": { "reference": "Encounter/1201" },
+  "date": "2026-07-19T09:30:00.000Z",
+  "author": [{ "reference": "Device/medinfo-system" }],
+  "title": "Entlassungsbrief",
+  "section": [
+    {
+      "title": "Zusammenfassung",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Patient:in wurde nach unauffälligem Verlauf entlassen.</div>"
+      }
+    },
+    {
+      "title": "Empfehlung",
+      "text": {
+        "status": "generated",
+        "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\">Wiedervorstellung bei Beschwerden, Kontrolle beim Hausarzt in 2 Wochen.</div>"
+      }
+    }
+  ]
+}
