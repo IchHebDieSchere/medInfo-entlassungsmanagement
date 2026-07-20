@@ -28,6 +28,10 @@ const options = {
       {
         name: 'Patients',
         description: 'Verwaltung von Patienten'
+      },
+      {
+        name: 'Discharge',
+        description: 'Steuerung des Entlassungsprozesses'
       }
     ],
 
@@ -389,7 +393,8 @@ const options = {
 
   apis: [
     './src/routes/system.routes.js',
-    './src/modules/patients/patient.routes.js'
+    './src/modules/patients/patient.routes.js',
+    './src/modules/discharge/discharge.routes.js'
   ]
 }
 
