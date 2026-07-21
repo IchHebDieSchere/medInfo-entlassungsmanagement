@@ -96,14 +96,12 @@ test('Swagger specification exposes all current endpoints', async () => {
   assert.ok(specification.paths['/api/v1/patients']?.post)
   assert.ok(specification.paths['/api/v1/patients/{patientId}']?.get)
   assert.ok(specification.paths['/api/v1/patients/{patientId}']?.patch)
-  
+
   assert.ok(specification.paths['/api/v1/discharge']?.post)
   assert.ok(specification.paths['/api/v1/audit/{transactionId}']?.get)
 
   assert.equal(
-    specification.paths['/api/v1/discharge'].post[
-      'x-required-scopes'
-    ][0],
+    specification.paths['/api/v1/discharge'].post['x-required-scopes'][0],
     'discharge:write'
   )
 
@@ -308,9 +306,7 @@ test('unknown discharge fields are rejected', async () => {
 })
 
 test('invalid audit transaction IDs are rejected', async () => {
-  const response = await fetch(
-    `${baseUrl}/api/v1/audit/not-a-uuid`
-  )
+  const response = await fetch(`${baseUrl}/api/v1/audit/not-a-uuid`)
 
   const body = await response.json()
 

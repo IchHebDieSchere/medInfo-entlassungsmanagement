@@ -34,9 +34,7 @@
     {
       "use": "official",
       "family": "Boyer",
-      "given": [
-        "Lauren"
-      ]
+      "given": ["Lauren"]
     }
   ],
   "gender": "female",

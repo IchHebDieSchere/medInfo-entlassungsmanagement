@@ -11,7 +11,10 @@
           "display": "RESTful Operation"
         },
         "subtype": [
-          { "system": "http://hl7.org/fhir/restful-interaction", "code": "create" }
+          {
+            "system": "http://hl7.org/fhir/restful-interaction",
+            "code": "create"
+          }
         ],
         "action": "C",
         "recorded": "2026-07-19T09:32:00.000Z",
@@ -19,7 +22,9 @@
         "agent": [
           { "who": { "reference": "Device/medinfo-system" }, "requestor": true }
         ],
-        "source": { "observer": { "display": "MedInfo Entlassungsmanagement" } },
+        "source": {
+          "observer": { "display": "MedInfo Entlassungsmanagement" }
+        },
         "entity": [
           { "what": { "reference": "Composition/789" } },
           { "what": { "reference": "Patient/596" } }

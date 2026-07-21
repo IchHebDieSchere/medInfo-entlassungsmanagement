@@ -3,7 +3,11 @@
   "status": "current",
   "type": {
     "coding": [
-      { "system": "http://loinc.org", "code": "18842-5", "display": "Discharge summary" }
+      {
+        "system": "http://loinc.org",
+        "code": "18842-5",
+        "display": "Discharge summary"
+      }
     ]
   },
   "subject": { "reference": "Patient/596" },

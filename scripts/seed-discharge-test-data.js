@@ -1,7 +1,4 @@
-import {
-  createPatient,
-  fhirRequest
-} from '../src/fhir-client.js'
+import { createPatient, fhirRequest } from '../src/fhir-client.js'
 
 const localPatientId = process.argv[2]
 
@@ -45,8 +42,7 @@ const run = async () => {
       status: 'in-progress',
 
       class: {
-        system:
-          'http://terminology.hl7.org/CodeSystem/v3-ActCode',
+        system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode',
         code: 'IMP',
         display: 'inpatient encounter'
       },

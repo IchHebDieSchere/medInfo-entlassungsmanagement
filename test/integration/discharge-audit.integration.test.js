@@ -20,13 +20,10 @@ let databaseConnected = false
 const assertSafeTestEnvironment = () => {
   const isTestEnvironment = config.nodeEnv === 'test'
 
-  const usesTestDatabase =
-    config.mongodbUri.includes('med-info-fhir-test')
+  const usesTestDatabase = config.mongodbUri.includes('med-info-fhir-test')
 
   if (!isTestEnvironment || !usesTestDatabase) {
-    throw new Error(
-      'Integration tests require the isolated test database'
-    )
+    throw new Error('Integration tests require the isolated test database')
   }
 }
 
@@ -72,32 +69,19 @@ test('discharge audit entries are stored and returned chronologically', async ()
     }
   })
 
-  const auditEntries =
-    await listDischargeAuditsByTransactionId(transactionId)
+  const auditEntries = await listDischargeAuditsByTransactionId(transactionId)
 
   assert.equal(auditEntries.length, 2)
 
-  assert.equal(
-    auditEntries[0].transactionId,
-    transactionId
-  )
+  assert.equal(auditEntries[0].transactionId, transactionId)
 
-  assert.equal(
-    auditEntries[0].step,
-    'REQUEST_RECEIVED'
-  )
+  assert.equal(auditEntries[0].step, 'REQUEST_RECEIVED')
 
-  assert.equal(
-    auditEntries[1].step,
-    'INPUT_VALIDATED'
-  )
+  assert.equal(auditEntries[1].step, 'INPUT_VALIDATED')
 
-  assert.deepEqual(
-    auditEntries[1].metadata,
-    {
-      diagnosisCount: 1
-    }
-  )
+  assert.deepEqual(auditEntries[1].metadata, {
+    diagnosisCount: 1
+  })
 
   assert.ok(auditEntries[0].createdAt)
   assert.ok(auditEntries[1].createdAt)
@@ -127,18 +111,11 @@ test('audit query only returns entries for the requested transaction', async () 
     message: 'Other workflow failed'
   })
 
-  const auditEntries =
-    await listDischargeAuditsByTransactionId(
-      requestedTransactionId
-    )
-
-  assert.equal(auditEntries.length, 1)
-  assert.equal(
-    auditEntries[0].transactionId,
+  const auditEntries = await listDischargeAuditsByTransactionId(
     requestedTransactionId
   )
-  assert.equal(
-    auditEntries[0].step,
-    'WORKFLOW_COMPLETED'
-  )
+
+  assert.equal(auditEntries.length, 1)
+  assert.equal(auditEntries[0].transactionId, requestedTransactionId)
+  assert.equal(auditEntries[0].step, 'WORKFLOW_COMPLETED')
 })
