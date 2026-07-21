@@ -37,14 +37,21 @@ const getMongoDbUri = nodeEnv => {
 }
 
 const parseFhirBaseUrl = value => {
+  let parsedUrl
+
   try {
-    // eslint-disable-next-line no-new
-    new URL(value)
+    parsedUrl = new URL(value)
   } catch {
     throw new Error(`Invalid FHIR_BASE_URL value: ${value}`)
   }
 
-  return value.replace(/\/$/, '')
+  if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+    throw new Error(
+      `FHIR_BASE_URL must use http or https: ${value}`
+    )
+  }
+
+  return parsedUrl.href.replace(/\/$/, '')
 }
 
 const getFhirBaseUrl = () => {
