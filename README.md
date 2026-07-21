@@ -7,6 +7,8 @@ HAPI-FHIR-R4-Server und verarbeitet Patient-, Encounter-, Composition-,
 DocumentReference-, AuditEvent- und Provenance-Ressourcen. Swagger dokumentiert
 und demonstriert alle verfügbaren API-Endpunkte.
 
+## Planungsd
+
 ## Voraussetzungen
 
 Installiert und startet vor der Einrichtung folgende Anwendungen:
