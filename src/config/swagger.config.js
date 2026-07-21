@@ -243,6 +243,157 @@ const options = {
           }
         },
 
+        DischargeResult: {
+          type: 'object',
+          additionalProperties: false,
+          required: [
+            'transactionId',
+            'status',
+            'patientId',
+            'encounterId',
+            'fhir',
+            'completedAt'
+          ],
+          properties: {
+            transactionId: {
+              type: 'string',
+              format: 'uuid',
+              example: '81b61e03-2da7-4e4c-ab02-962233ca6599'
+            },
+            status: {
+              type: 'string',
+              enum: ['COMPLETED'],
+              example: 'COMPLETED'
+            },
+            patientId: {
+              type: 'string',
+              format: 'uuid',
+              example: 'a38e7f0a-69f0-4ab8-b668-e446730bc220'
+            },
+            encounterId: {
+              type: 'string',
+              example: '123'
+            },
+            fhir: {
+              type: 'object',
+              additionalProperties: false,
+              required: ['patientId', 'compositionId', 'documentReferenceId'],
+              properties: {
+                patientId: {
+                  type: 'string',
+                  example: '456'
+                },
+                compositionId: {
+                  type: 'string',
+                  example: '789'
+                },
+                documentReferenceId: {
+                  type: 'string',
+                  example: '1011'
+                }
+              }
+            },
+            completedAt: {
+              type: 'string',
+              format: 'date-time',
+              example: '2026-07-21T12:00:00.000Z'
+            }
+          }
+        },
+
+        DischargeResponse: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['data'],
+          properties: {
+            data: {
+              $ref: '#/components/schemas/DischargeResult'
+            }
+          }
+        },
+
+        DischargeAuditEntry: {
+          type: 'object',
+          additionalProperties: false,
+          required: [
+            'transactionId',
+            'patientId',
+            'encounterId',
+            'step',
+            'status',
+            'message',
+            'createdAt'
+          ],
+          properties: {
+            transactionId: {
+              type: 'string',
+              format: 'uuid',
+              example: '81b61e03-2da7-4e4c-ab02-962233ca6599'
+            },
+            patientId: {
+              type: 'string',
+              format: 'uuid',
+              example: 'a38e7f0a-69f0-4ab8-b668-e446730bc220'
+            },
+            encounterId: {
+              type: 'string',
+              example: '123'
+            },
+            step: {
+              type: 'string',
+              enum: [
+                'REQUEST_RECEIVED',
+                'INPUT_VALIDATED',
+                'LOCAL_PATIENT_FOUND',
+                'FHIR_PATIENT_READY',
+                'ENCOUNTER_VALIDATED',
+                'ENCOUNTER_CLOSED',
+                'COMPOSITION_CREATED',
+                'DOCUMENT_REFERENCE_CREATED',
+                'FHIR_AUDIT_RECORDED',
+                'WORKFLOW_COMPLETED',
+                'WORKFLOW_FAILED'
+              ],
+              example: 'ENCOUNTER_CLOSED'
+            },
+            status: {
+              type: 'string',
+              enum: ['SUCCESS', 'FAILED'],
+              example: 'SUCCESS'
+            },
+            message: {
+              type: 'string',
+              example: 'FHIR encounter was closed'
+            },
+            metadata: {
+              type: 'object',
+              additionalProperties: true,
+              example: {
+                previousStatus: 'in-progress'
+              }
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              example: '2026-07-21T12:00:00.000Z'
+            }
+          }
+        },
+
+        DischargeAuditResponse: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['data'],
+          properties: {
+            data: {
+              type: 'array',
+              items: {
+                $ref: '#/components/schemas/DischargeAuditEntry'
+              }
+            }
+          }
+        },
+
         ErrorResponse: {
           type: 'object',
           additionalProperties: false,
@@ -266,12 +417,31 @@ const options = {
                   example: '87fdb42a-5112-45de-8908-26fa047bf080'
                 },
                 details: {
-                  type: 'array',
                   description:
-                    'Optionale Details zu einzelnen Validierungsfehlern',
-                  items: {
-                    $ref: '#/components/schemas/ValidationIssue'
-                  }
+                    'Optionale Details zu Validierungsfehlern oder einem fehlgeschlagenen Workflow',
+                  oneOf: [
+                    {
+                      type: 'array',
+                      items: {
+                        $ref: '#/components/schemas/ValidationIssue'
+                      }
+                    },
+                    {
+                      type: 'object',
+                      additionalProperties: true,
+                      properties: {
+                        transactionId: {
+                          type: 'string',
+                          format: 'uuid',
+                          example: '81b61e03-2da7-4e4c-ab02-962233ca6599'
+                        },
+                        failedStep: {
+                          type: 'string',
+                          example: 'FHIR_ENCOUNTER_LOOKUP'
+                        }
+                      }
+                    }
+                  ]
                 }
               }
             }

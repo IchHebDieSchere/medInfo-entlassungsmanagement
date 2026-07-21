@@ -149,6 +149,10 @@ export const auditRouter = Router()
  *     responses:
  *       '201':
  *         description: Entlassungsworkflow wurde erfolgreich abgeschlossen
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/DischargeResponse'
  *       '400':
  *         description: Eingabedaten sind ungültig
  *         content:
@@ -211,6 +215,10 @@ dischargeRouter.post(
  *     responses:
  *       '200':
  *         description: Audit-Einträge wurden geladen
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/DischargeAuditResponse'
  *       '400':
  *         description: transactionId ist ungültig
  *         content:

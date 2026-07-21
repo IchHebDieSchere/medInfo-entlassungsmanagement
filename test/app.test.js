@@ -113,6 +113,24 @@ test('Swagger specification exposes all current endpoints', async () => {
   )
 
   assert.equal(
+    specification.paths['/api/v1/discharge'].post.responses['201'].content[
+      'application/json'
+    ].schema.$ref,
+    '#/components/schemas/DischargeResponse'
+  )
+
+  assert.equal(
+    specification.paths['/api/v1/audit/{transactionId}'].get.responses['200']
+      .content['application/json'].schema.$ref,
+    '#/components/schemas/DischargeAuditResponse'
+  )
+
+  assert.ok(specification.components.schemas.DischargeResult)
+  assert.ok(specification.components.schemas.DischargeResponse)
+  assert.ok(specification.components.schemas.DischargeAuditEntry)
+  assert.ok(specification.components.schemas.DischargeAuditResponse)
+
+  assert.equal(
     specification.paths['/api/v1/patients'].post['x-required-scopes'][0],
     'patient:write'
   )
