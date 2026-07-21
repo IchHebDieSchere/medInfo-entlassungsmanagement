@@ -7,7 +7,9 @@ HAPI-FHIR-R4-Server und verarbeitet Patient-, Encounter-, Composition-,
 DocumentReference-, AuditEvent- und Provenance-Ressourcen. Swagger dokumentiert
 und demonstriert alle verfügbaren API-Endpunkte.
 
-## Planungsd
+## Planungsdatei
+
+Die für die Abgabe geforderte Planungsdatei befindet sich unter docs/discharge-planning.md. Detaillierte Architekturentscheidungen und deren technische Umsetzung werden ergänzend in docs/discharge-architecture.md dokumentiert.
 
 ## Voraussetzungen
 
