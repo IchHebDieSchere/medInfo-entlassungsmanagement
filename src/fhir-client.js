@@ -67,10 +67,9 @@ async function extractOperationOutcomeIssues(response) {
     const body = await response.json()
 
     if (body?.resourceType === 'OperationOutcome' && Array.isArray(body.issue)) {
-      return body.issue.map(({ severity, code, diagnostics }) => ({
+      return body.issue.map(({ severity, code }) => ({
         severity,
-        code,
-        diagnostics
+        code
       }))
     }
   } catch {
@@ -98,39 +97,22 @@ function createFhirClient({
    * path === '' ruft die Basis-URL selbst auf (nötig für Transaction-Bundles).
    */
   async function fhirRequest(path, { method = 'GET', body } = {}) {
-    const controller = new AbortController()
-    const timeoutHandle = setTimeout(() => controller.abort(), requestTimeoutMs)
+  const controller = new AbortController()
 
-    let response
+  const timeoutHandle = setTimeout(() => {
+    controller.abort()
+  }, requestTimeoutMs)
 
-    try {
-      response = await fetchImpl(`${baseUrl}${path}`, {
-        method,
-        headers: {
-          'Content-Type': 'application/fhir+json',
-          Accept: 'application/fhir+json'
-        },
-        body: body ? JSON.stringify(body) : undefined,
-        signal: controller.signal
-      })
-    } catch (error) {
-      if (error.name === 'AbortError') {
-        throw new AppError(
-          504,
-          'FHIR_TIMEOUT',
-          `FHIR-Anfrage nach ${requestTimeoutMs}ms abgebrochen: ${method} ${path || '/'}`
-        )
-      }
-
-      throw new AppError(
-        502,
-        'FHIR_UNAVAILABLE',
-        `FHIR-Server nicht erreichbar: ${method} ${path || '/'}`,
-        { details: { cause: error.message } }
-      )
-    } finally {
-      clearTimeout(timeoutHandle)
-    }
+  try {
+    const response = await fetchImpl(`${baseUrl}${path}`, {
+      method,
+      headers: {
+        'Content-Type': 'application/fhir+json',
+        Accept: 'application/fhir+json'
+      },
+      body: body ? JSON.stringify(body) : undefined,
+      signal: controller.signal
+    })
 
     if (!response.ok) {
       const issues = await extractOperationOutcomeIssues(response)
@@ -147,8 +129,34 @@ function createFhirClient({
       return null
     }
 
-    return response.json()
+    return await response.json()
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new AppError(
+        504,
+        'FHIR_TIMEOUT',
+        `FHIR-Anfrage nach ${requestTimeoutMs}ms abgebrochen: ${method} ${path || '/'}`
+      )
+    }
+
+    if (error instanceof AppError) {
+      throw error
+    }
+
+    throw new AppError(
+      502,
+      'FHIR_UNAVAILABLE',
+      `FHIR-Server nicht erreichbar: ${method} ${path || '/'}`,
+      {
+        details: {
+          cause: error.message
+        }
+      }
+    )
+  } finally {
+    clearTimeout(timeoutHandle)
   }
+}
 
   // ---------- Patient ----------
   // Nimmt/liefert das interne Patient-Modell (familyName, givenName, birthDate, id),
