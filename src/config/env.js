@@ -36,6 +36,27 @@ const getMongoDbUri = nodeEnv => {
   return 'mongodb://127.0.0.1:27017/med-info-fhir'
 }
 
+const parseFhirBaseUrl = value => {
+  try {
+    // eslint-disable-next-line no-new
+    new URL(value)
+  } catch {
+    throw new Error(`Invalid FHIR_BASE_URL value: ${value}`)
+  }
+
+  return value.replace(/\/$/, '')
+}
+
+const getFhirBaseUrl = () => {
+  const configuredUrl = process.env.FHIR_BASE_URL?.trim()
+
+  if (configuredUrl) {
+    return parseFhirBaseUrl(configuredUrl)
+  }
+
+  return 'http://localhost:8080/fhir'
+}
+
 const nodeEnv = parseNodeEnv(process.env.NODE_ENV || 'development')
 
 const parseCorsOrigins = value => {
@@ -163,6 +184,7 @@ export const config = Object.freeze({
   port: parsePort(process.env.PORT || '3000'),
   trustProxy: parseTrustProxy(process.env.TRUST_PROXY || 'false'),
   mongodbUri: getMongoDbUri(nodeEnv),
+  fhirBaseUrl: getFhirBaseUrl(),
   corsOrigins: parseCorsOrigins(process.env.CORS_ORIGINS || ''),
   rateLimitWindowMs: parsePositiveInteger(
     process.env.RATE_LIMIT_WINDOW_MS || '60000',

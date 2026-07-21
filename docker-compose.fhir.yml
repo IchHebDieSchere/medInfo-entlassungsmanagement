@@ -22,7 +22,9 @@
 
 services:
   fhir:
-    image: hapiproject/hapi:latest
+    # :latest ist nicht reproduzierbar (ändert sich mit jedem Release-Push).
+    # Feste Version prüfen/aktualisieren unter: https://hub.docker.com/r/hapiproject/hapi/tags
+    image: hapiproject/hapi:v8.8.0-1
     container_name: medinfo-fhir
     ports:
       - '8080:8080'

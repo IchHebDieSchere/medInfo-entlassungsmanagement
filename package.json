@@ -21,7 +21,10 @@
     "compose:up": "docker compose up --build",
     "compose:down": "docker compose down",
     "fhir": "docker compose -f docker-compose.fhir.yml up -d",
-    "fhir:down": "docker compose -f docker-compose.fhir.yml down"
+    "fhir:down": "docker compose -f docker-compose.fhir.yml down",
+    "demo:discharge": "node --env-file-if-exists=.env scripts/discharge-flow-demo.js",
+    "demo:patient": "node --env-file-if-exists=.env scripts/patient-lifecycle-demo.js",
+    "fhir:test": "node --test test/app.test.js test/auth.test.js test/http-server.test.js test/fhir-client.unit.test.js"
   },
   "repository": {
     "type": "git",

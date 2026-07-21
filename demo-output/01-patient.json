@@ -1,5 +1,6 @@
 {
   "resourceType": "Patient",
+<<<<<<< HEAD
   "id": "1015",
   "meta": {
     "versionId": "1",
@@ -14,6 +15,13 @@
       "family": "Mustermann",
       "given": ["Erika"]
     }
+=======
+  "id": "1000",
+  "identifier": null,
+  "familyName": "Mustermann",
+  "givenName": [
+    "Erika"
+>>>>>>> fhir-client
   ],
   "birthDate": "1990-01-01"
 }
