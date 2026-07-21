@@ -59,14 +59,17 @@ export const errorHandler = (error, req, res, next) => {
     })
   }
 
+  const hasDetails =
+    error.details !== undefined &&
+    error.details !== null &&
+    (!Array.isArray(error.details) || error.details.length > 0)
+
   return res.status(statusCode).json({
     error: {
       code,
       message,
       requestId: req.id,
-      ...(Array.isArray(error.details) && error.details.length > 0
-        ? { details: error.details }
-        : {})
+      ...(hasDetails ? { details: error.details } : {})
     }
   })
 }

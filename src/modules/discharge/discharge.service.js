@@ -524,6 +524,11 @@ export const startDischarge = async input => {
       // soll nicht überschrieben werden.
     }
 
+    applicationError.details = {
+      transactionId,
+      failedStep: currentStep
+    }
+
     throw applicationError
   }
 }
