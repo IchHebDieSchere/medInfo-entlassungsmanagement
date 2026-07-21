@@ -41,7 +41,7 @@ const callFhir = async (
     return await operation()
   } catch (error) {
     const isNotFound =
-      typeof error.message === 'string' && /->\s*404\b/.test(error.message)
+      error.statusCode === 404 || error.code === 'FHIR_NOT_FOUND'
 
     if (isNotFound && notFoundCode) {
       throw new AppError(404, notFoundCode, notFoundMessage)
@@ -69,32 +69,6 @@ const createAuditWriter = ({ transactionId, patientId, encounterId }) => {
   }
 }
 
-const toFhirPatientResource = localPatient => {
-  return {
-    resourceType: 'Patient',
-
-    identifier: [
-      {
-        system: FHIR_PATIENT_IDENTIFIER_SYSTEM,
-        value: localPatient.patientId
-      }
-    ],
-
-    name: [
-      {
-        family: localPatient.familyName,
-        given: localPatient.givenName
-      }
-    ],
-
-    ...(localPatient.birthDate
-      ? {
-          birthDate: localPatient.birthDate
-        }
-      : {})
-  }
-}
-
 const findOrCreateFhirPatient = async localPatient => {
   const identifierSearchValue = `${FHIR_PATIENT_IDENTIFIER_SYSTEM}|${localPatient.patientId}`
 
@@ -116,7 +90,15 @@ const findOrCreateFhirPatient = async localPatient => {
   }
 
   const createdPatient = await callFhir('create patient', () =>
-    createFhirPatient(toFhirPatientResource(localPatient))
+    createFhirPatient({
+      identifier: {
+        system: FHIR_PATIENT_IDENTIFIER_SYSTEM,
+        value: localPatient.patientId
+      },
+      familyName: localPatient.familyName,
+      givenName: localPatient.givenName,
+      birthDate: localPatient.birthDate
+    })
   )
 
   return {

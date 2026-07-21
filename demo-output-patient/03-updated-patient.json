@@ -1,11 +1,8 @@
 {
   "resourceType": "Patient",
-  "id": "1006",
+  "id": "1018",
   "identifier": null,
-  "familyName": "Testfrau",
-  "givenName": [
-    "Petra",
-    "Maria"
-  ],
-  "birthDate": "1985-05-15"
+  "familyName": null,
+  "givenName": [],
+  "birthDate": "2000-01-01"
 }

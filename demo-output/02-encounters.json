@@ -1,26 +1,26 @@
 {
   "resourceType": "Bundle",
-  "id": "758c6a32-0983-446d-adaf-37b1b0463c4a",
+  "id": "cd3d0abe-2acb-48c8-a420-7ae17aad5a1b",
   "meta": {
-    "lastUpdated": "2026-07-21T12:12:20.547+00:00"
+    "lastUpdated": "2026-07-21T17:00:18.928+00:00"
   },
   "type": "searchset",
   "total": 1,
   "link": [
     {
       "relation": "self",
-      "url": "http://localhost:8080/fhir/Encounter?patient=1000"
+      "url": "http://localhost:8080/fhir/Encounter?patient=1021"
     }
   ],
   "entry": [
     {
-      "fullUrl": "http://localhost:8080/fhir/Encounter/1001",
+      "fullUrl": "http://localhost:8080/fhir/Encounter/1022",
       "resource": {
         "resourceType": "Encounter",
-        "id": "1001",
+        "id": "1022",
         "meta": {
           "versionId": "1",
-          "lastUpdated": "2026-07-21T12:12:20.473+00:00"
+          "lastUpdated": "2026-07-21T17:00:18.902+00:00"
         },
         "status": "in-progress",
         "class": {
@@ -29,7 +29,7 @@
           "display": "inpatient encounter"
         },
         "subject": {
-          "reference": "Patient/1000"
+          "reference": "Patient/1021"
         }
       },
       "search": {

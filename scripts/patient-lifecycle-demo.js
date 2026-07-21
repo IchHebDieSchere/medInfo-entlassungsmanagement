@@ -1,16 +1,16 @@
 // scripts/patient-lifecycle-demo.js
 // Testet die Funktionen aus fhir-client.js, die discharge-flow-demo.js NICHT abdeckt:
-// - createPatient   (nimmt jetzt das interne Patient-Modell: familyName/givenName/birthDate)
-// - findPatient     (liefert Suchergebnisse ebenfalls im internen Modell zurück)
-// - updatePatient   (nimmt/liefert ebenfalls das interne Modell)
-// - createAuditEvent   (einzelner Direkt-POST, nicht als Teil einer Bundle-Transaction)
-// - createProvenance   (einzelner Direkt-POST, nicht als Teil einer Bundle-Transaction)
+// - createPatient  
+// - findPatient  
+// - updatePatient   
+// - createAuditEvent   
+// - createProvenance   
 //
 // Läuft unabhängig von discharge-flow-demo.js - legt sich seinen eigenen Test-Patienten an.
 //
 // Voraussetzung: lokaler FHIR-Server läuft (docker compose -f docker-compose.fhir.yml up -d)
 // Ausführen mit: node --env-file-if-exists=.env scripts/patient-lifecycle-demo.js
-// Speichert alle Antworten unter demo-output-patient/ - gut zum Zeigen/Vorführen.
+// Speichert alle Antworten unter demo-output-patient/ 
 
 import fs from 'node:fs/promises'
 import {

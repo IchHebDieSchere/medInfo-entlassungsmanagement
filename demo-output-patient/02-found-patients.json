@@ -1,33 +1,15 @@
 {
   "resourceType": "Bundle",
-  "id": "b21dbbf6-7980-416d-b7f4-f7d8c52d9690",
+  "id": "e5a5c9ec-10f7-4286-948b-a2cefaafb9bd",
   "meta": {
-    "lastUpdated": "2026-07-21T12:12:29.236+00:00"
+    "lastUpdated": "2026-07-21T17:00:11.327+00:00"
   },
   "type": "searchset",
-  "total": 1,
+  "total": 0,
   "link": [
     {
       "relation": "self",
-      "url": "http://localhost:8080/fhir/Patient?family=Testfrau"
-    }
-  ],
-  "entry": [
-    {
-      "fullUrl": "http://localhost:8080/fhir/Patient/1006",
-      "resource": {
-        "resourceType": "Patient",
-        "id": "1006",
-        "identifier": null,
-        "familyName": "Testfrau",
-        "givenName": [
-          "Petra"
-        ],
-        "birthDate": "1985-05-15"
-      },
-      "search": {
-        "mode": "match"
-      }
+      "url": "http://localhost:8080/fhir/Patient?family=Reinhold"
     }
   ]
 }
