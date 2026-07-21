@@ -15,22 +15,12 @@ const run = async () => {
   console.log('FHIR-Testdaten werden angelegt ...')
 
   const fhirPatient = await createPatient({
-    resourceType: 'Patient',
-
-    identifier: [
-      {
-        system: 'urn:medinfo:patient-id',
-        value: localPatientId
-      }
-    ],
-
-    name: [
-      {
-        family: 'Mustermann',
-        given: ['Erika']
-      }
-    ],
-
+    identifier: {
+      system: 'urn:medinfo:patient-id',
+      value: localPatientId
+    },
+    familyName: 'Mustermann',
+    givenName: ['Erika'],
     birthDate: '1990-01-01'
   })
 

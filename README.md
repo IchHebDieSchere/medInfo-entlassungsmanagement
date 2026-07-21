@@ -1,18 +1,18 @@
 # MedInfo – Entlassungsmanagement
 
-Backend-Prototyp für das Entlassungsmanagement. Die Anwendung stellt einREST-API mit Express bereit und speichert Daten in MongoDB. Für den
-Entlassungsworkflow kommuniziert sie außerdem mit einem lokalen HAPI-FHIR-R4-
-Server. Der aktuelle Stand enthält System-Endpunkte, die Endpunkte zum
-Anlegen, Lesen, Auflisten und Ändern von Patienten sowie den FHIR-Client
-(`src/fhir-client.js`) für Patient-, Encounter-, Composition-, DocumentReference-,
-AuditEvent- und Provenance-Ressourcen.
+Backend-Prototyp für das Entlassungsmanagement. Die Anwendung stellt eine
+REST-API mit Express bereit und speichert Patienten, Entlassungsworkflows und
+Audit-Einträge in MongoDB. Der Entlassungsworkflow kommuniziert mit einem
+HAPI-FHIR-R4-Server und verarbeitet Patient-, Encounter-, Composition-,
+DocumentReference-, AuditEvent- und Provenance-Ressourcen. Swagger dokumentiert
+und demonstriert alle verfügbaren API-Endpunkte.
 
 ## Voraussetzungen
 
 Installiert und startet vor der Einrichtung folgende Anwendungen:
 
 - [Git](https://git-scm.com/) zum Klonen und Versionieren
-- [Node.js](https://nodejs.org/) ab Version 20.6 inklusive npm
+- [Node.js](https://nodejs.org/) ab Version 22 inklusive npm
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) für MongoDB
   und den lokalen FHIR-Server
 - eine Entwicklungsumgebung, empfohlen wird [Visual Studio Code](https://code.visualstudio.com/)
@@ -63,7 +63,30 @@ Zugangsdaten ein, die mit anderen geteilt oder committed werden sollen. Welche
 Variablen es gibt und was sie bedeuten, steht unten unter
 [Umgebungsvariablen](#umgebungsvariablen).
 
-## Anwendung starten: zwei bis drei Terminals
+## Schnellstart mit Docker Compose
+
+Der vollständige Stack aus API, MongoDB und HAPI-FHIR lässt sich gemeinsam
+starten:
+
+```powershell
+npm run compose:up
+```
+
+Beim ersten Start muss Docker die Images laden und HAPI-FHIR initialisieren.
+Sobald die API bereit ist, sind folgende Adressen verfügbar:
+
+- API-Bereitschaft: <http://localhost:3000/ready>
+- Swagger UI: <http://localhost:3000/api-docs>
+- OpenAPI-JSON: <http://localhost:3000/api-docs.json>
+- FHIR CapabilityStatement: <http://localhost:8080/fhir/metadata>
+
+Den gesamten Stack beendet ihr mit:
+
+```powershell
+npm run compose:down
+```
+
+## Alternative: Anwendung in getrennten Terminals starten
 
 Öffnet den Projektordner in VS Code und legt über **Terminal > Neues Terminal**
 die benötigten Terminals an. Alle Terminals müssen sich im Projektordner
@@ -102,10 +125,10 @@ Invoke-RestMethod http://localhost:3000/ready
 
 Wenn API und Datenbank bereit sind, lautet der Status `ready`.
 
-### Terminal 3 – FHIR-Server (nur für FHIR-Client-Arbeit und Demo-Skripte)
+### Terminal 3 – FHIR-Server
 
-Wer am FHIR-Client arbeitet oder die Demo-Skripte ausführen möchte, startet
-zusätzlich einen lokalen HAPI-FHIR-R4-Server:
+Für den Entlassungsendpunkt, den FHIR-Client und die Demo-Skripte wird zusätzlich
+ein lokaler HAPI-FHIR-R4-Server benötigt:
 
 ```powershell
 npm run fhir
@@ -136,7 +159,7 @@ npm run fhir:down
 Beendet zuerst die API, dann MongoDB, zuletzt (falls gestartet) den
 FHIR-Server, jeweils mit `Strg+C` bzw. `npm run fhir:down`.
 
-## Tests ausführen: optionales weiteres Terminal
+## Tests ausführen
 
 Die schnellen API-Tests benötigen keine laufende MongoDB und keinen laufenden
 FHIR-Server:
@@ -145,15 +168,16 @@ FHIR-Server:
 npm test
 ```
 
-Für die Integrationstests der Patienten-API muss MongoDB aus Terminal 1
-laufen:
+Für die MongoDB-Integrationstests muss MongoDB aus Terminal 1 laufen:
 
 ```powershell
 npm run test:integration
 ```
 
 Die Integrationstests verwenden ausschließlich die separate Datenbank
-`med-info-fhir-test` und leeren ihre Testdaten selbstständig.
+`med-info-fhir-test` und leeren ihre Testdaten selbstständig. Der vollständige
+Entlassungsworkflow wird dabei gegen einen kurzlebigen lokalen FHIR-Testserver
+geprüft; ein laufender HAPI-FHIR-Container ist dafür nicht erforderlich.
 
 Für den FHIR-Client und die umliegende Infrastruktur (Auth, HTTP-Server,
 Rate-Limiting) gibt es ein eigenes Testset, das ohne laufenden FHIR-Server
@@ -166,30 +190,24 @@ npm run fhir:test
 
 ## Aktuelle Endpunkte
 
-| Methode | Pfad                          | Zweck                                     |
-| ------- | ----------------------------- | ----------------------------------------- |
-| `GET`   | `/ping`                       | einfacher Erreichbarkeitstest             |
-| `GET`   | `/health`                     | Status des laufenden Prozesses            |
-| `GET`   | `/ready`                      | Bereitschaft inklusive MongoDB-Verbindung |
-| `POST`  | `/api/v1/patients`            | Patient anlegen                           |
-| `GET`   | `/api/v1/patients`            | Patienten seitenweise auflisten           |
-| `GET`   | `/api/v1/patients/:patientId` | einzelnen Patienten lesen                 |
-| `PATCH` | `/api/v1/patients/:patientId` | Patient teilweise ändern                  |
+| Methode | Pfad                           | Zweck                                     |
+| ------- | ------------------------------ | ----------------------------------------- |
+| `GET`   | `/ping`                        | einfacher Erreichbarkeitstest             |
+| `GET`   | `/health`                      | Status des laufenden Prozesses            |
+| `GET`   | `/ready`                       | Bereitschaft inklusive MongoDB-Verbindung |
+| `POST`  | `/api/v1/patients`             | Patient anlegen                           |
+| `GET`   | `/api/v1/patients`             | Patienten seitenweise auflisten           |
+| `GET`   | `/api/v1/patients/:patientId`  | einzelnen Patienten lesen                 |
+| `PATCH` | `/api/v1/patients/:patientId`  | Patient teilweise ändern                  |
+| `POST`  | `/api/v1/discharge`            | Entlassungsworkflow vollständig ausführen |
+| `GET`   | `/api/v1/audit/:transactionId` | Audit-Trail eines Workflows lesen         |
 
-> **Hinweis:** Der FHIR-Client (`src/fhir-client.js`) sowie ein
-> Entlassungsworkflow (`src/modules/discharge/`) existieren bereits im Code,
-> sind aber aktuell noch nicht in `src/routes/index.js` eingebunden und daher
-> über die API noch nicht erreichbar. Sobald das nachgezogen ist, ergänzen
-> `POST /api/v1/discharge` und `GET /api/v1/audit/:transactionId` diese
-> Tabelle.
+Zum Testen der API kann Swagger unter <http://localhost:3000/api-docs>
+verwendet werden. Dafür müssen mindestens MongoDB und API laufen; der
+Entlassungsendpunkt benötigt zusätzlich HAPI-FHIR.
 
-Zum testen der Application kann Swagger verwendet werden **(! Dafür müssen MongoDB und API laufen !)**
-
-```
-http://localhost:3000/api-docs
-```
-
-Swagger ist zwar entspannter, jedoch kann ein Beispiel-Patient auch folgendermaßen in der Console erstellt werden:
+Ein Beispiel-Patient kann alternativ folgendermaßen im Terminal erstellt
+werden:
 
 ```powershell
 $body = @{
@@ -233,12 +251,6 @@ abbrechen, statt später unklare Laufzeitfehler zu erzeugen.
 | `JWT_ISSUER`                 | **ja, wenn Auth aktiv** | –                                                                              | Erwarteter `iss`-Claim                                   |
 | `JWT_AUDIENCE`               | **ja, wenn Auth aktiv** | –                                                                              | Erwarteter `aud`-Claim                                   |
 
-Neue Variable in den Vorlagen ergänzen, falls noch nicht vorhanden:
-
-```
-FHIR_BASE_URL=http://localhost:8080/fhir
-```
-
 ## Projektstruktur
 
 ```text
@@ -249,7 +261,7 @@ src/
 ├── middleware/               Request-ID, 404- und Fehlerbehandlung
 ├── modules/
 │   ├── patients/            fachliches Patientenmodul
-│   └── discharge/            Entlassungsworkflow (noch nicht in routes/index.js eingebunden)
+│   └── discharge/            Entlassungsworkflow, Zustände und Audit-Trail
 ├── routes/                   zentrale und technische Routen
 ├── fhir-client.js            Client für den HAPI-FHIR-Server (Patient, Encounter, Composition, ...)
 ├── app.js                    Aufbau der Express-Anwendung
@@ -317,20 +329,56 @@ mindestens einem anderen Teammitglied prüfen. Lokale Dateien wie `.env`,
 | `npm run fhir`             | lokalen HAPI-FHIR-Server in Docker starten                                                 |
 | `npm run fhir:down`        | lokalen HAPI-FHIR-Server wieder stoppen                                                    |
 | `npm test`                 | schnelle Tests ohne Datenbank ausführen                                                    |
-| `npm run test:integration` | Integrationstests gegen die Testdatenbank ausführen                                        |
+| `npm run test:integration` | Integrationstests gegen Test-MongoDB und lokalen FHIR-Testserver ausführen                 |
 | `npm run fhir:test`        | Unit-Tests für FHIR-Client, Auth und HTTP-Server ausführen (kein echter FHIR-Server nötig) |
-| `npm run demo:discharge`   | Demo-Skript: kompletter Entlassungsablauf gegen den lokalen FHIR-Server                    |
+| `npm run demo:discharge`   | Demo-Skript: FHIR-Ressourcenfolge des Entlassungsablaufs ausführen                         |
 | `npm run demo:patient`     | Demo-Skript: Patienten-Lifecycle gegen den lokalen FHIR-Server                             |
+| `npm run check`            | ESLint, Prettier-Prüfung und schnelle Tests gemeinsam ausführen                            |
+| `npm run compose:up`       | API, MongoDB und HAPI-FHIR gemeinsam bauen und starten                                     |
+| `npm run compose:down`     | vollständigen Compose-Stack stoppen                                                        |
 
-## Geplanter fachlicher Ablauf
+## Umgesetzter fachlicher Ablauf
 
 1. Eine Krankenhausbehandlung wird abgeschlossen.
 2. Ein Arztbrief wird ausgestellt.
 3. Der Arztbrief wird validiert und persistiert.
 4. Die Informationen stehen für den weiteren Entlassungsprozess bereit.
 
-Schritte 2–4 sind als FHIR-Composition/DocumentReference im Entlassungsworkflow
-(`src/modules/discharge/`, `src/fhir-client.js`) bereits umgesetzt und lassen
-sich lokal über `npm run demo:discharge` gegen den FHIR-Server durchspielen;
-die Anbindung an die laufende Express-API steht noch aus (siehe Hinweis unter
-[Aktuelle Endpunkte](#aktuelle-endpunkte)).
+Der Ablauf ist als zentraler Entlassungsworkflow unter
+`src/modules/discharge/` umgesetzt. Er synchronisiert den Patienten mit FHIR,
+prüft und beendet den Encounter, erstellt Composition und DocumentReference,
+schreibt AuditEvent und Provenance und persistiert Status sowie Audit-Trail in
+MongoDB. Er lässt sich über `POST /api/v1/discharge` oder Swagger ausführen;
+`npm run demo:discharge` demonstriert die zugrunde liegende FHIR-Ressourcenfolge
+separat.
+
+## Weiterführende Dokumentation
+
+- `docs/discharge-architecture.md`: Architektur, Zustandsmodell, Fehlerfälle und
+  bewusst gesetzte MVP-Grenzen
+- `docs/discharge-demo.md`: vollständiger Demo-Ablauf mit Beispielausgaben
+- `docs/discharge-planning.md`: fachliche Planung und Zuordnung der
+  FHIR-Ressourcen
+- `docs/technical-handoff.md`: technische Konventionen und Definition of Done
+
+Der MVP nimmt fehlgeschlagene Workflows nicht automatisch wieder auf und führt
+keinen automatischen Rollback bereits geschriebener FHIR-Ressourcen durch. Der
+persistierte Workflowstatus und der Audit-Trail machen solche Fälle
+nachvollziehbar. Retry-, Idempotenz- und Kompensationsmechanismen sind mögliche
+Erweiterungen für einen produktiven Betrieb, aber keine Voraussetzung für den
+hier dokumentierten Prototyp.
+
+## Abschlussprüfung vor der Abgabe
+
+Bei laufender Test-MongoDB sollten alle vereinbarten Prüfungen erfolgreich sein:
+
+```powershell
+npm run check
+npm run test:integration
+docker compose config --quiet
+docker compose -f docker-compose.fhir.yml config --quiet
+```
+
+Zusätzlich beschreibt `docs/discharge-demo.md` den vollständigen API-Ablauf.
+Der FHIR-Teil kann mit `npm run demo:discharge` separat gegen den lokalen
+HAPI-FHIR-Server demonstriert werden.

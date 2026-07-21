@@ -14,7 +14,7 @@
 // Funktionsnamen wie bisher (findPatient, getPatient, ...) - bestehende Aufrufer
 // (discharge-flow-demo.js, patient-lifecycle-demo.js) funktionieren unverändert weiter.
 //
-// MVP-Entscheidungen (bitte im Team gegenchecken, bevor ihr das final so lasst):
+// Bewusste MVP-Entscheidungen:
 // - Composition: nur Pflichtfelder + Sections als Freitext (kein Codesystem für
 //   Sections, keine strukturierten Beobachtungen).
 // - DocumentReference: ein Attachment mit Base64-Inhalt (Text oder PDF-Base64 möglich),

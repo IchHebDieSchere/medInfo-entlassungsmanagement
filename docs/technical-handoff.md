@@ -91,9 +91,10 @@ Der finale FHIR-Client sollte:
 - in Tests mit injizierbarem `fetch` oder einem lokalen HTTP-Testserver arbeiten,
 - niemals echte Patientendaten oder Zugangstoken loggen.
 
-`src/fhir-client.js` ist nur ein früher Prototyp und nicht in den App-Start
-eingebunden. Er sollte ersetzt oder entfernt werden, sobald Person 2 den
-finalen Client integriert.
+`src/fhir-client.js` enthält den final integrierten Client. Seine
+Netzwerkschicht ist über `createFhirClient(...)` injizierbar; die schnellen
+Tests verwenden deshalb keinen externen FHIR-Server. Der Entlassungsservice
+nutzt den Default-Client mit der zentral validierten Konfiguration.
 
 ## Übergabe an Person 3: Entlassungsworkflow
 
