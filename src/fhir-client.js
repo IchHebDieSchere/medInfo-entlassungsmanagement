@@ -66,7 +66,10 @@ async function extractOperationOutcomeIssues(response) {
   try {
     const body = await response.json()
 
-    if (body?.resourceType === 'OperationOutcome' && Array.isArray(body.issue)) {
+    if (
+      body?.resourceType === 'OperationOutcome' &&
+      Array.isArray(body.issue)
+    ) {
       return body.issue.map(({ severity, code }) => ({
         severity,
         code
@@ -97,66 +100,66 @@ function createFhirClient({
    * path === '' ruft die Basis-URL selbst auf (nötig für Transaction-Bundles).
    */
   async function fhirRequest(path, { method = 'GET', body } = {}) {
-  const controller = new AbortController()
+    const controller = new AbortController()
 
-  const timeoutHandle = setTimeout(() => {
-    controller.abort()
-  }, requestTimeoutMs)
+    const timeoutHandle = setTimeout(() => {
+      controller.abort()
+    }, requestTimeoutMs)
 
-  try {
-    const response = await fetchImpl(`${baseUrl}${path}`, {
-      method,
-      headers: {
-        'Content-Type': 'application/fhir+json',
-        Accept: 'application/fhir+json'
-      },
-      body: body ? JSON.stringify(body) : undefined,
-      signal: controller.signal
-    })
+    try {
+      const response = await fetchImpl(`${baseUrl}${path}`, {
+        method,
+        headers: {
+          'Content-Type': 'application/fhir+json',
+          Accept: 'application/fhir+json'
+        },
+        body: body ? JSON.stringify(body) : undefined,
+        signal: controller.signal
+      })
 
-    if (!response.ok) {
-      const issues = await extractOperationOutcomeIssues(response)
+      if (!response.ok) {
+        const issues = await extractOperationOutcomeIssues(response)
 
-      throw new AppError(
-        response.status,
-        mapFhirStatusToErrorCode(response.status),
-        `FHIR-Server-Anfrage fehlgeschlagen: ${method} ${path || '/'}`,
-        { details: issues }
-      )
-    }
-
-    if (response.status === 204) {
-      return null
-    }
-
-    return await response.json()
-  } catch (error) {
-    if (error.name === 'AbortError') {
-      throw new AppError(
-        504,
-        'FHIR_TIMEOUT',
-        `FHIR-Anfrage nach ${requestTimeoutMs}ms abgebrochen: ${method} ${path || '/'}`
-      )
-    }
-
-    if (error instanceof AppError) {
-      throw error
-    }
-
-    throw new AppError(
-      502,
-      'FHIR_UNAVAILABLE',
-      `FHIR-Server nicht erreichbar: ${method} ${path || '/'}`,
-      {
-        details: {
-          cause: error.message
-        }
+        throw new AppError(
+          response.status,
+          mapFhirStatusToErrorCode(response.status),
+          `FHIR-Server-Anfrage fehlgeschlagen: ${method} ${path || '/'}`,
+          { details: issues }
+        )
       }
-    )
-  } finally {
-    clearTimeout(timeoutHandle)
+
+      if (response.status === 204) {
+        return null
+      }
+
+      return await response.json()
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        throw new AppError(
+          504,
+          'FHIR_TIMEOUT',
+          `FHIR-Anfrage nach ${requestTimeoutMs}ms abgebrochen: ${method} ${path || '/'}`
+        )
+      }
+
+      if (error instanceof AppError) {
+        throw error
+      }
+
+      throw new AppError(
+        502,
+        'FHIR_UNAVAILABLE',
+        `FHIR-Server nicht erreichbar: ${method} ${path || '/'}`,
+        {
+          details: {
+            cause: error.message
+          }
+        }
+      )
+    } finally {
+      clearTimeout(timeoutHandle)
+    }
   }
-}
 
   // ---------- Patient ----------
   // Nimmt/liefert das interne Patient-Modell (familyName, givenName, birthDate, id),
@@ -241,7 +244,10 @@ function createFhirClient({
 
   async function createDocumentReference(params) {
     const documentReference = buildDocumentReferenceResource(params)
-    return fhirRequest('/DocumentReference', { method: 'POST', body: documentReference })
+    return fhirRequest('/DocumentReference', {
+      method: 'POST',
+      body: documentReference
+    })
   }
 
   // ---------- AuditEvent ----------
@@ -296,7 +302,13 @@ function toBase64(text) {
  * anhand einer externen ID (z.B. der internen MongoDB-patientId) wiederzufinden,
  * statt bei jedem Aufruf einen Duplikat-Patienten anzulegen.
  */
-function toFhirPatient({ id, identifier, familyName, givenName, birthDate } = {}) {
+function toFhirPatient({
+  id,
+  identifier,
+  familyName,
+  givenName,
+  birthDate
+} = {}) {
   return {
     resourceType: 'Patient',
     ...(id ? { id } : {}),
@@ -329,7 +341,10 @@ function fromFhirPatient(fhirPatient) {
     resourceType: 'Patient',
     id: fhirPatient?.id ?? null,
     identifier: primaryIdentifier
-      ? { system: primaryIdentifier.system ?? null, value: primaryIdentifier.value ?? null }
+      ? {
+          system: primaryIdentifier.system ?? null,
+          value: primaryIdentifier.value ?? null
+        }
       : null,
     familyName: primaryName?.family ?? null,
     givenName: primaryName?.given ?? [],
@@ -338,7 +353,13 @@ function fromFhirPatient(fhirPatient) {
 }
 
 const DISCHARGE_SUMMARY_TYPE = {
-  coding: [{ system: 'http://loinc.org', code: '18842-5', display: 'Discharge summary' }]
+  coding: [
+    {
+      system: 'http://loinc.org',
+      code: '18842-5',
+      display: 'Discharge summary'
+    }
+  ]
 }
 
 /**
@@ -398,7 +419,9 @@ function buildDocumentReferenceResource({
   }
 
   if (compositionId) {
-    documentReference.context.related = [{ reference: `Composition/${compositionId}` }]
+    documentReference.context.related = [
+      { reference: `Composition/${compositionId}` }
+    ]
   }
 
   return documentReference
@@ -423,7 +446,9 @@ function buildAuditEventResource({
       code: 'rest',
       display: 'RESTful Operation'
     },
-    subtype: [{ system: 'http://hl7.org/fhir/restful-interaction', code: 'create' }],
+    subtype: [
+      { system: 'http://hl7.org/fhir/restful-interaction', code: 'create' }
+    ],
     action,
     recorded,
     outcome,

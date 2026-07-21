@@ -12,9 +12,7 @@
   "name": [
     {
       "family": "Mustermann",
-      "given": [
-        "Erika"
-      ]
+      "given": ["Erika"]
     }
   ],
   "birthDate": "1990-01-01"

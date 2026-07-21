@@ -3,8 +3,6 @@
   "id": "1046",
   "identifier": null,
   "familyName": "Mustermann",
-  "givenName": [
-    "Erika"
-  ],
+  "givenName": ["Erika"],
   "birthDate": "1990-01-01"
 }
