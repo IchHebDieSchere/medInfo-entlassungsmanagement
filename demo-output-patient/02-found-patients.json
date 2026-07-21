@@ -1,15 +1,33 @@
 {
   "resourceType": "Bundle",
-  "id": "e5a5c9ec-10f7-4286-948b-a2cefaafb9bd",
+  "id": "90570546-394d-4083-98ca-f717f0442d15",
   "meta": {
-    "lastUpdated": "2026-07-21T17:00:11.327+00:00"
+    "lastUpdated": "2026-07-21T17:42:17.582+00:00"
   },
   "type": "searchset",
-  "total": 0,
+  "total": 1,
   "link": [
     {
       "relation": "self",
       "url": "http://localhost:8080/fhir/Patient?family=Reinhold"
+    }
+  ],
+  "entry": [
+    {
+      "fullUrl": "http://localhost:8080/fhir/Patient/1031",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "1031",
+        "identifier": null,
+        "familyName": "Reinhold",
+        "givenName": [
+          "Gordian"
+        ],
+        "birthDate": "2000-01-01"
+      },
+      "search": {
+        "mode": "match"
+      }
     }
   ]
 }
