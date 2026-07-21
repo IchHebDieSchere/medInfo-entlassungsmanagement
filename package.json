@@ -11,7 +11,10 @@
     "test:integration": "node --env-file=.env.test --test test/integration/patient.integration.test.js",
     "mongodb": "docker run --rm -v ./database:/data/db -p 27017:27017 mongo:8",
     "fhir": "docker compose -f docker-compose.fhir.yml up -d",
-    "fhir:down": "docker compose -f docker-compose.fhir.yml down"
+    "fhir:down": "docker compose -f docker-compose.fhir.yml down",
+    "demo:discharge": "node --env-file-if-exists=.env scripts/discharge-flow-demo.js",
+    "demo:patient": "node --env-file-if-exists=.env scripts/patient-lifecycle-demo.js",
+    "fhir:test": "node --test test/app.test.js test/auth.test.js test/http-server.test.js test/fhir-client.unit.test.js"
   },
   "repository": {
     "type": "git",

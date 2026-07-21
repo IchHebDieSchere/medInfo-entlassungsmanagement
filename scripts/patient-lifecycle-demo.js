@@ -1,73 +1,75 @@
-// Testet die Funktionen aus fhir-client.js
-// - createPatient
-// - findPatient
-// - updatePatient
-// - createAuditEvent
-// - createProvenance
+// scripts/patient-lifecycle-demo.js
+// Testet die Funktionen aus fhir-client.js, die discharge-flow-demo.js NICHT abdeckt:
+// - createPatient   (nimmt jetzt das interne Patient-Modell: familyName/givenName/birthDate)
+// - findPatient     (liefert Suchergebnisse ebenfalls im internen Modell zurück)
+// - updatePatient   (nimmt/liefert ebenfalls das interne Modell)
+// - createAuditEvent   (einzelner Direkt-POST, nicht als Teil einer Bundle-Transaction)
+// - createProvenance   (einzelner Direkt-POST, nicht als Teil einer Bundle-Transaction)
 //
 // Läuft unabhängig von discharge-flow-demo.js - legt sich seinen eigenen Test-Patienten an.
 //
-// Voraussetzung: lokaler FHIR-Server läuft --> docker compose -f docker-compose.fhir.yml up -d
-// Ausführen mit: node --env-file=.env scripts/patient-lifecycle-demo.js 
-// Speichert alle Antworten unter demo-output-patient/
+// Voraussetzung: lokaler FHIR-Server läuft (docker compose -f docker-compose.fhir.yml up -d)
+// Ausführen mit: node --env-file-if-exists=.env scripts/patient-lifecycle-demo.js
+// Speichert alle Antworten unter demo-output-patient/ - gut zum Zeigen/Vorführen.
 
-import fs from 'node:fs/promises';
+import fs from 'node:fs/promises'
 import {
   createPatient,
   findPatient,
   updatePatient,
   createAuditEvent,
-  createProvenance,
-} from '../src/fhir-client.js';
+  createProvenance
+} from '../src/fhir-client.js'
 
-const OUTPUT_DIR = 'demo-output-patient';
+const OUTPUT_DIR = 'demo-output-patient'
 
 const saveJson = async (filename, data) => {
-  await fs.mkdir(OUTPUT_DIR, { recursive: true });
-  await fs.writeFile(`${OUTPUT_DIR}/${filename}`, JSON.stringify(data, undefined, 2));
-};
+  await fs.mkdir(OUTPUT_DIR, { recursive: true })
+  await fs.writeFile(`${OUTPUT_DIR}/${filename}`, JSON.stringify(data, undefined, 2))
+}
 
 const run = async () => {
-  console.log('1) createPatient...');
+  console.log('1) Patient anlegen (createPatient)...')
   const newPatient = await createPatient({
-    resourceType: 'Patient',
-    name: [{ family: 'Reinhold', given: ['Gordian'] }],
-    birthDate: '2000-01-01',
-  });
-  await saveJson('01-created-patient.json', newPatient);
-  console.log(`   Angelegt: Patient/${newPatient.id}`);
+    familyName: 'Testfrau',
+    givenName: ['Petra'],
+    birthDate: '1985-05-15'
+  })
+  await saveJson('01-created-patient.json', newPatient)
+  console.log(`   Angelegt: Patient/${newPatient.id}`)
 
-  console.log('2) findPatient...');
-  const searchResult = await findPatient({ family: 'Reinhold' });
-  await saveJson('02-found-patients.json', searchResult);
-  const wasFound = searchResult.entry?.some((entry) => entry.resource?.id === newPatient.id);
-  console.log(`   Im Suchergebnis: ${wasFound ? 'ja' : 'NEIN - bitte Suchparameter/Server prüfen'}`);
+  console.log('2) Patient suchen (findPatient)...')
+  const searchResult = await findPatient({ family: 'Testfrau' })
+  await saveJson('02-found-patients.json', searchResult)
+  const wasFound = searchResult.entry?.some(entry => entry.resource?.id === newPatient.id)
+  console.log(`   Im Suchergebnis enthalten: ${wasFound ? 'ja' : 'NEIN - bitte Suchparameter/Server prüfen'}`)
 
-  console.log('3) updatePatient...');
+  console.log('3) Patient aktualisieren (updatePatient)...')
   const updatedPatient = await updatePatient(newPatient.id, {
-    ...newPatient,
-    name: [{ family: 'Reinhold', given: ['Gordian', 'Lennart'] }],
-  });
-  await saveJson('03-updated-patient.json', updatedPatient);
-  console.log(`   Neuer Vorname enthalten: ${updatedPatient.name?.[0]?.given?.includes('Lennart') ? 'ja' : 'NEIN'}`);
+    familyName: 'Testfrau',
+    givenName: ['Petra', 'Maria'],
+    birthDate: newPatient.birthDate
+  })
+  await saveJson('03-updated-patient.json', updatedPatient)
+  console.log(`   Neuer Vorname enthalten: ${updatedPatient.givenName?.includes('Maria') ? 'ja' : 'NEIN'}`)
 
-  console.log('4) createAuditEvent...');
+  console.log('4) AuditEvent für die Aktualisierung anlegen (createAuditEvent)...')
   const auditEvent = await createAuditEvent({
     entityReference: `Patient/${newPatient.id}`,
-    action: 'U',
-  });
-  await saveJson('04-audit-event.json', auditEvent);
+    action: 'U'
+  })
+  await saveJson('04-audit-event.json', auditEvent)
 
-  console.log('5) createProvenance...');
+  console.log('5) Provenance für die Aktualisierung anlegen (createProvenance)...')
   const provenance = await createProvenance({
-    targetReference: `Patient/${newPatient.id}`,
-  });
-  await saveJson('05-provenance.json', provenance);
+    targetReference: `Patient/${newPatient.id}`
+  })
+  await saveJson('05-provenance.json', provenance)
 
-  console.log(`Fertig. Alle Antworten liegen in ./${OUTPUT_DIR}/`);
-};
+  console.log(`Fertig. Alle Antworten liegen unter ./${OUTPUT_DIR}/`)
+}
 
-run().catch((error) => {
-  console.error('Test fehlgeschlagen:', error.message);
-  process.exit(1);
-});
+run().catch(error => {
+  console.error('Test fehlgeschlagen:', error.message)
+  process.exit(1)
+})
