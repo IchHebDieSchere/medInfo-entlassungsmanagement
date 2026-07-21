@@ -46,9 +46,7 @@ const parseFhirBaseUrl = value => {
   }
 
   if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-    throw new Error(
-      `FHIR_BASE_URL must use http or https: ${value}`
-    )
+    throw new Error(`FHIR_BASE_URL must use http or https: ${value}`)
   }
 
   return parsedUrl.href.replace(/\/$/, '')

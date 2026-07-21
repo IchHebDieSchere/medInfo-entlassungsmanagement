@@ -1,11 +1,11 @@
 {
   "resourceType": "Bundle",
-  "id": "90570546-394d-4083-98ca-f717f0442d15",
+  "id": "f0469c66-c9a4-451c-936b-3be88af57a3c",
   "meta": {
-    "lastUpdated": "2026-07-21T17:42:17.582+00:00"
+    "lastUpdated": "2026-07-21T18:15:40.453+00:00"
   },
   "type": "searchset",
-  "total": 1,
+  "total": 3,
   "link": [
     {
       "relation": "self",
@@ -18,6 +18,40 @@
       "resource": {
         "resourceType": "Patient",
         "id": "1031",
+        "identifier": null,
+        "familyName": "Reinhold",
+        "givenName": [
+          "Gordian",
+          "Lennart"
+        ],
+        "birthDate": "2000-01-01"
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "http://localhost:8080/fhir/Patient/1034",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "1034",
+        "identifier": null,
+        "familyName": "Reinhold",
+        "givenName": [
+          "Gordian",
+          "Lennart"
+        ],
+        "birthDate": "2000-01-01"
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "http://localhost:8080/fhir/Patient/1043",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "1043",
         "identifier": null,
         "familyName": "Reinhold",
         "givenName": [

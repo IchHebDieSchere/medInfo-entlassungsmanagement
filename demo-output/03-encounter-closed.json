@@ -1,9 +1,9 @@
 {
   "resourceType": "Encounter",
-  "id": "1022",
+  "id": "1047",
   "meta": {
     "versionId": "2",
-    "lastUpdated": "2026-07-21T17:00:18.955+00:00"
+    "lastUpdated": "2026-07-21T18:15:45.503+00:00"
   },
   "status": "finished",
   "class": {
@@ -12,9 +12,9 @@
     "display": "inpatient encounter"
   },
   "subject": {
-    "reference": "Patient/1021"
+    "reference": "Patient/1046"
   },
   "period": {
-    "end": "2026-07-21T17:00:18.952Z"
+    "end": "2026-07-21T18:15:45.500Z"
   }
 }

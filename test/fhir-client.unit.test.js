@@ -26,7 +26,10 @@ test('getPatient sendet ein GET an /Patient/:id und liefert das interne Patient-
     })
   }
 
-  const client = createFhirClient({ baseUrl: 'http://test.local/fhir', fetchImpl })
+  const client = createFhirClient({
+    baseUrl: 'http://test.local/fhir',
+    fetchImpl
+  })
   const patient = await client.getPatient('596')
 
   assert.equal(calls.length, 1)
@@ -47,10 +50,17 @@ test('createPatient Ã¼bersetzt das interne Modell in eine FHIR-Resource und zurÃ
 
   const fetchImpl = async (url, options) => {
     sentBody = JSON.parse(options.body)
-    return jsonResponse(201, { resourceType: 'Patient', id: 'abc-123', ...sentBody })
+    return jsonResponse(201, {
+      resourceType: 'Patient',
+      id: 'abc-123',
+      ...sentBody
+    })
   }
 
-  const client = createFhirClient({ baseUrl: 'http://test.local/fhir', fetchImpl })
+  const client = createFhirClient({
+    baseUrl: 'http://test.local/fhir',
+    fetchImpl
+  })
 
   const created = await client.createPatient({
     identifier: { system: 'urn:medinfo:patient-id', value: 'local-42' },
@@ -60,7 +70,11 @@ test('createPatient Ã¼bersetzt das interne Modell in eine FHIR-Resource und zurÃ
   })
 
   assert.equal(sentBody.resourceType, 'Patient')
-  assert.equal(sentBody.id, undefined, 'id darf beim Anlegen nicht mitgeschickt werden')
+  assert.equal(
+    sentBody.id,
+    undefined,
+    'id darf beim Anlegen nicht mitgeschickt werden'
+  )
   assert.equal(sentBody.name[0].family, 'Testfrau')
   assert.deepEqual(sentBody.identifier, [
     { system: 'urn:medinfo:patient-id', value: 'local-42' }
@@ -99,10 +113,17 @@ test('createDischargeComposition sendet ein POST mit der gebauten Composition-Re
 
   const fetchImpl = async (url, options) => {
     sentBody = JSON.parse(options.body)
-    return jsonResponse(201, { resourceType: 'Composition', id: '789', ...sentBody })
+    return jsonResponse(201, {
+      resourceType: 'Composition',
+      id: '789',
+      ...sentBody
+    })
   }
 
-  const client = createFhirClient({ baseUrl: 'http://test.local/fhir', fetchImpl })
+  const client = createFhirClient({
+    baseUrl: 'http://test.local/fhir',
+    fetchImpl
+  })
 
   await client.createDischargeComposition({
     patientId: '596',
@@ -118,12 +139,21 @@ test('createDischargeComposition sendet ein POST mit der gebauten Composition-Re
 test('eine 404-Antwort wird als AppError mit Code FHIR_NOT_FOUND geworfen', async () => {
   const operationOutcome = {
     resourceType: 'OperationOutcome',
-    issue: [{ severity: 'error', code: 'not-found', diagnostics: 'Patient/999 not found' }]
+    issue: [
+      {
+        severity: 'error',
+        code: 'not-found',
+        diagnostics: 'Patient/999 not found'
+      }
+    ]
   }
 
   const fetchImpl = async () => jsonResponse(404, operationOutcome)
 
-  const client = createFhirClient({ baseUrl: 'http://test.local/fhir', fetchImpl })
+  const client = createFhirClient({
+    baseUrl: 'http://test.local/fhir',
+    fetchImpl
+  })
 
   await assert.rejects(
     () => client.getPatient('999'),
@@ -132,7 +162,10 @@ test('eine 404-Antwort wird als AppError mit Code FHIR_NOT_FOUND geworfen', asyn
       assert.equal(error.statusCode, 404)
       assert.equal(error.code, 'FHIR_NOT_FOUND')
       assert.deepEqual(error.details, [
-        { severity: 'error', code: 'not-found', diagnostics: 'Patient/999 not found' }
+        {
+          severity: 'error',
+          code: 'not-found'
+        }
       ])
       return true
     }
@@ -148,7 +181,10 @@ test('eine 500-Antwort ohne OperationOutcome leakt keine rohe Serverantwort', as
     }
   })
 
-  const client = createFhirClient({ baseUrl: 'http://test.local/fhir', fetchImpl })
+  const client = createFhirClient({
+    baseUrl: 'http://test.local/fhir',
+    fetchImpl
+  })
 
   await assert.rejects(
     () => client.getPatient('1'),
@@ -192,7 +228,10 @@ test('ein Netzwerkfehler (Server nicht erreichbar) wirft AppError mit Code FHIR_
     throw new Error('connect ECONNREFUSED 127.0.0.1:8080')
   }
 
-  const client = createFhirClient({ baseUrl: 'http://test.local/fhir', fetchImpl })
+  const client = createFhirClient({
+    baseUrl: 'http://test.local/fhir',
+    fetchImpl
+  })
 
   await assert.rejects(
     () => client.getPatient('596'),

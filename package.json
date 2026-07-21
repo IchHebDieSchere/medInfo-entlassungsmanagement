@@ -15,7 +15,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "node --test test/app.test.js test/auth.test.js test/http-server.test.js test/fhir-client.unit.test.js",
-    "test:integration": "node --env-file-if-exists=.env.test --test test/integration/patient.integration.test.js test/integration/discharge-audit.integration.test.js",
+    "test:integration": "node --env-file-if-exists=.env.test.example --test test/integration/patient.integration.test.js test/integration/discharge-audit.integration.test.js",
     "check": "npm run lint && npm run format:check && npm test",
     "mongodb": "docker run --rm -v ./database:/data/db -p 27017:27017 mongo:8",
     "compose:up": "docker compose up --build",

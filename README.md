@@ -166,15 +166,15 @@ npm run fhir:test
 
 ## Aktuelle Endpunkte
 
-| Methode | Pfad | Zweck |
-| --- | --- | --- |
-| `GET` | `/ping` | einfacher Erreichbarkeitstest |
-| `GET` | `/health` | Status des laufenden Prozesses |
-| `GET` | `/ready` | Bereitschaft inklusive MongoDB-Verbindung |
-| `POST` | `/api/v1/patients` | Patient anlegen |
-| `GET` | `/api/v1/patients` | Patienten seitenweise auflisten |
-| `GET` | `/api/v1/patients/:patientId` | einzelnen Patienten lesen |
-| `PATCH` | `/api/v1/patients/:patientId` | Patient teilweise ändern |
+| Methode | Pfad                          | Zweck                                     |
+| ------- | ----------------------------- | ----------------------------------------- |
+| `GET`   | `/ping`                       | einfacher Erreichbarkeitstest             |
+| `GET`   | `/health`                     | Status des laufenden Prozesses            |
+| `GET`   | `/ready`                      | Bereitschaft inklusive MongoDB-Verbindung |
+| `POST`  | `/api/v1/patients`            | Patient anlegen                           |
+| `GET`   | `/api/v1/patients`            | Patienten seitenweise auflisten           |
+| `GET`   | `/api/v1/patients/:patientId` | einzelnen Patienten lesen                 |
+| `PATCH` | `/api/v1/patients/:patientId` | Patient teilweise ändern                  |
 
 > **Hinweis:** Der FHIR-Client (`src/fhir-client.js`) sowie ein
 > Entlassungsworkflow (`src/modules/discharge/`) existieren bereits im Code,
@@ -184,6 +184,7 @@ npm run fhir:test
 > Tabelle.
 
 Zum testen der Application kann Swagger verwendet werden **(! Dafür müssen MongoDB und API laufen !)**
+
 ```
 http://localhost:3000/api-docs
 ```
@@ -213,24 +214,24 @@ Alle Variablen werden zentral in `src/config/env.js` gelesen und validiert –
 ungültige Werte lassen den Prozess beim Start mit einer Fehlermeldung
 abbrechen, statt später unklare Laufzeitfehler zu erzeugen.
 
-| Variable | Pflicht? | Default | Bedeutung |
-| --- | --- | --- | --- |
-| `NODE_ENV` | nein | `development` | `development`, `test` oder `production` |
-| `PORT` | nein | `3000` | Port der Express-API (1–65535) |
-| `TRUST_PROXY` | nein | `false` | `true`/`false` oder Anzahl vertrauter Proxy-Hops |
-| `MONGODB_URI` | **ja, in Produktion** | `mongodb://127.0.0.1:27017/med-info-fhir` (bzw. `-test` unter `NODE_ENV=test`) | MongoDB-Verbindung |
-| `FHIR_BASE_URL` | nein | `http://localhost:8080/fhir` | Basis-URL des HAPI-FHIR-Servers für `src/fhir-client.js` |
-| `CORS_ORIGINS` | nein | *(leer)* | Kommagetrennte Liste erlaubter `http(s)://`-Origins |
-| `RATE_LIMIT_WINDOW_MS` | nein | `60000` | Zeitfenster für das Rate-Limiting |
-| `RATE_LIMIT_MAX_REQUESTS` | nein | `100` | Max. Requests pro Zeitfenster |
-| `HTTP_REQUEST_TIMEOUT_MS` | nein | `30000` | Timeout für einzelne Requests (u. a. an den FHIR-Server) |
-| `HTTP_HEADERS_TIMEOUT_MS` | nein | `15000` | Muss ≤ `HTTP_REQUEST_TIMEOUT_MS` sein |
-| `HTTP_KEEP_ALIVE_TIMEOUT_MS` | nein | `5000` | Keep-Alive-Timeout des HTTP-Servers |
-| `HTTP_SHUTDOWN_TIMEOUT_MS` | nein | `10000` | Timeout für den kontrollierten Shutdown |
-| `AUTH_ENABLED` | nein | `true` in Produktion, sonst `false` | Schaltet JWT-Prüfung ein/aus |
-| `JWT_PUBLIC_KEY` | **ja, wenn Auth aktiv** | – | RS256-Public-Key (PEM, `\n` als Escape in einer Zeile) |
-| `JWT_ISSUER` | **ja, wenn Auth aktiv** | – | Erwarteter `iss`-Claim |
-| `JWT_AUDIENCE` | **ja, wenn Auth aktiv** | – | Erwarteter `aud`-Claim |
+| Variable                     | Pflicht?                | Default                                                                        | Bedeutung                                                |
+| ---------------------------- | ----------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------- |
+| `NODE_ENV`                   | nein                    | `development`                                                                  | `development`, `test` oder `production`                  |
+| `PORT`                       | nein                    | `3000`                                                                         | Port der Express-API (1–65535)                           |
+| `TRUST_PROXY`                | nein                    | `false`                                                                        | `true`/`false` oder Anzahl vertrauter Proxy-Hops         |
+| `MONGODB_URI`                | **ja, in Produktion**   | `mongodb://127.0.0.1:27017/med-info-fhir` (bzw. `-test` unter `NODE_ENV=test`) | MongoDB-Verbindung                                       |
+| `FHIR_BASE_URL`              | nein                    | `http://localhost:8080/fhir`                                                   | Basis-URL des HAPI-FHIR-Servers für `src/fhir-client.js` |
+| `CORS_ORIGINS`               | nein                    | _(leer)_                                                                       | Kommagetrennte Liste erlaubter `http(s)://`-Origins      |
+| `RATE_LIMIT_WINDOW_MS`       | nein                    | `60000`                                                                        | Zeitfenster für das Rate-Limiting                        |
+| `RATE_LIMIT_MAX_REQUESTS`    | nein                    | `100`                                                                          | Max. Requests pro Zeitfenster                            |
+| `HTTP_REQUEST_TIMEOUT_MS`    | nein                    | `30000`                                                                        | Timeout für einzelne Requests (u. a. an den FHIR-Server) |
+| `HTTP_HEADERS_TIMEOUT_MS`    | nein                    | `15000`                                                                        | Muss ≤ `HTTP_REQUEST_TIMEOUT_MS` sein                    |
+| `HTTP_KEEP_ALIVE_TIMEOUT_MS` | nein                    | `5000`                                                                         | Keep-Alive-Timeout des HTTP-Servers                      |
+| `HTTP_SHUTDOWN_TIMEOUT_MS`   | nein                    | `10000`                                                                        | Timeout für den kontrollierten Shutdown                  |
+| `AUTH_ENABLED`               | nein                    | `true` in Produktion, sonst `false`                                            | Schaltet JWT-Prüfung ein/aus                             |
+| `JWT_PUBLIC_KEY`             | **ja, wenn Auth aktiv** | –                                                                              | RS256-Public-Key (PEM, `\n` als Escape in einer Zeile)   |
+| `JWT_ISSUER`                 | **ja, wenn Auth aktiv** | –                                                                              | Erwarteter `iss`-Claim                                   |
+| `JWT_AUDIENCE`               | **ja, wenn Auth aktiv** | –                                                                              | Erwarteter `aud`-Claim                                   |
 
 Neue Variable in den Vorlagen ergänzen, falls noch nicht vorhanden:
 
@@ -308,18 +309,18 @@ mindestens einem anderen Teammitglied prüfen. Lokale Dateien wie `.env`,
 
 ## Verfügbare npm-Befehle
 
-| Befehl | Bedeutung |
-| --- | --- |
-| `npm run start:dev` | API mit automatischem Neustart entwickeln |
-| `npm start` | API einmalig ohne Dateibeobachtung starten |
-| `npm run mongodb` | lokale MongoDB in Docker starten |
-| `npm run fhir` | lokalen HAPI-FHIR-Server in Docker starten |
-| `npm run fhir:down` | lokalen HAPI-FHIR-Server wieder stoppen |
-| `npm test` | schnelle Tests ohne Datenbank ausführen |
-| `npm run test:integration` | Integrationstests gegen die Testdatenbank ausführen |
-| `npm run fhir:test` | Unit-Tests für FHIR-Client, Auth und HTTP-Server ausführen (kein echter FHIR-Server nötig) |
-| `npm run demo:discharge` | Demo-Skript: kompletter Entlassungsablauf gegen den lokalen FHIR-Server |
-| `npm run demo:patient` | Demo-Skript: Patienten-Lifecycle gegen den lokalen FHIR-Server |
+| Befehl                     | Bedeutung                                                                                  |
+| -------------------------- | ------------------------------------------------------------------------------------------ |
+| `npm run start:dev`        | API mit automatischem Neustart entwickeln                                                  |
+| `npm start`                | API einmalig ohne Dateibeobachtung starten                                                 |
+| `npm run mongodb`          | lokale MongoDB in Docker starten                                                           |
+| `npm run fhir`             | lokalen HAPI-FHIR-Server in Docker starten                                                 |
+| `npm run fhir:down`        | lokalen HAPI-FHIR-Server wieder stoppen                                                    |
+| `npm test`                 | schnelle Tests ohne Datenbank ausführen                                                    |
+| `npm run test:integration` | Integrationstests gegen die Testdatenbank ausführen                                        |
+| `npm run fhir:test`        | Unit-Tests für FHIR-Client, Auth und HTTP-Server ausführen (kein echter FHIR-Server nötig) |
+| `npm run demo:discharge`   | Demo-Skript: kompletter Entlassungsablauf gegen den lokalen FHIR-Server                    |
+| `npm run demo:patient`     | Demo-Skript: Patienten-Lifecycle gegen den lokalen FHIR-Server                             |
 
 ## Geplanter fachlicher Ablauf
 
